@@ -20,6 +20,7 @@
 *.app
 
 build/
+cmake-build-debug/
 build_*/
 
 *.swp
@@ -53,6 +54,7 @@ CodeAnalyst/
 .dir-locals.el
 .vs/
 .vscode/
+.idea/
 
 # OS X internals
 .DS_Store
