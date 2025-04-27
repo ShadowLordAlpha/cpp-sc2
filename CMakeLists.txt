@@ -80,12 +80,7 @@ if (WSL2_CROSS_COMPILE)
 endif ()
 
 # External subproject depedencies
-include(civetweb)
-include(protobuf)
 include(sc2protocol)
-if (BUILD_SC2_RENDERER)
-    include(SDL)
-endif ()
 
 # cpp-sc2 libraries
 add_subdirectory(src)
