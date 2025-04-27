@@ -19,6 +19,13 @@
 *.out
 *.app
 
+# Cmake default build folders
+cmake-build-debug/
+cmake-build-release/
+
+# clion files
+.idea/
+
 build/
 build_*/
 
