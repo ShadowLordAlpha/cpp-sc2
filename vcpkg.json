@@ -11,8 +11,5 @@
   }, {
     "name" : "civetweb",
     "version>=" : "1.16#2"
-  }, {
-    "name" : "abseil",
-    "version>=" : "20250127.1"
   } ]
 }
