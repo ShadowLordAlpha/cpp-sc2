@@ -62,6 +62,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 if (MSVC)
     # Setup MSVC parallelized builds
     add_compile_options(/MP)
+    add_compile_options(/MDd) # There is a really dumb assert that happens when not using this
 
     # Use statically linked runtime
     set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>)
