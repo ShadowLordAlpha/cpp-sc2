@@ -25,7 +25,8 @@ add_library(sc2protocol STATIC ${proto_src})
 
 target_include_directories(sc2protocol SYSTEM PUBLIC "${PROJECT_BINARY_DIR}/generated")
 
-target_link_libraries(sc2protocol PUBLIC libprotobuf)
+find_package(Protobuf CONFIG REQUIRED)
+target_link_libraries(sc2protocol PUBLIC protobuf::libprotobuf)
 
 if (MSVC)
     target_compile_options(sc2protocol PRIVATE /W0)
@@ -49,16 +50,17 @@ else ()
         set(protoc_out_cc "${proto_generation_dir}/${proto_name_we}.pb.cc")
         set(protoc_out_h "${proto_generation_dir}/${proto_name_we}.pb.h")
 
+        message("Checking for Protoc: ${Protobuf_PROTOC_EXECUTABLE}")
+
         add_custom_command(
             OUTPUT
                 "${protoc_out_cc}"
                 "${protoc_out_h}"
             COMMAND
-                "${PROJECT_BINARY_DIR}/bin/protoc"
+                "${Protobuf_PROTOC_EXECUTABLE}" # "${PROJECT_BINARY_DIR}/bin/protoc"
                 "-I=${sc2protocol_SOURCE_DIR}"
                 "--cpp_out=${PROJECT_BINARY_DIR}/generated"
                 "${proto}"
-            DEPENDS protoc
             VERBATIM
         )
     endforeach()

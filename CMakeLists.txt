@@ -62,6 +62,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 if (MSVC)
     # Setup MSVC parallelized builds
     add_compile_options(/MP)
+    add_compile_options(/MDd) # There is a really dumb assert that happens when not using this
 
     # Use statically linked runtime
     set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>)
@@ -80,12 +81,7 @@ if (WSL2_CROSS_COMPILE)
 endif ()
 
 # External subproject depedencies
-include(civetweb)
-include(protobuf)
 include(sc2protocol)
-if (BUILD_SC2_RENDERER)
-    include(SDL)
-endif ()
 
 # cpp-sc2 libraries
 add_subdirectory(src)
