@@ -13,7 +13,7 @@
 int main(int argc, char* argv[]) {
     // Setup server that mimicks sc2.
     sc2::Server server;
-    server.Listen("5678", "100000", "100000", "5");
+    server.Listen(5678, "100000", "100000", "5");
 
     // Find game executable and run it.
     sc2::ProcessSettings process_settings;

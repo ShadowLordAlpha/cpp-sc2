@@ -8,53 +8,56 @@
 #include <queue>
 #include <vector>
 #include <mutex>
+#include <memory>
 
-struct mg_connection;
-struct mg_context;
+#include <ixwebsocket/IXWebSocketServer.h>
 
-namespace SC2APIProtocol {
+namespace SC2APIProtocol
+{
     class Request;
     class Response;
 }
 
-namespace sc2 {
+namespace sc2
+{
+    using RequestData = std::pair<ix::WebSocket *, SC2APIProtocol::Request *>;
+    using ResponseData = std::pair<ix::WebSocket *, SC2APIProtocol::Response *>;
 
-typedef std::pair<struct mg_connection*, SC2APIProtocol::Request*> RequestData;
-typedef std::pair<struct mg_connection*, SC2APIProtocol::Response*> ResponseData;
+    class Server
+    {
+    public:
+        Server() = default;
 
-class Server {
-public:
-    Server();
-    ~Server();
+        ~Server();
 
-    bool Listen(
-        const char* listeningPorts,
-        const char* requestTimeoutMs,
-        const char* websocketTimeoutMs,
-        const char* numThreads);
+        bool Listen(int listeningPort, const char *requestTimeoutMs, const char *websocketTimeoutMs,
+                    const char *numThreads);
 
-    void QueueRequest(struct mg_connection* conn, SC2APIProtocol::Request*& request);
-    void QueueResponse(struct mg_connection* conn, SC2APIProtocol::Response*& response);
+        void QueueRequest(ix::WebSocket *conn, SC2APIProtocol::Request *&request);
 
-    // If no connection is provided send it to the first connection attained.
-    void SendRequest(struct mg_connection* conn = nullptr);
-    void SendResponse(struct mg_connection* conn = nullptr);
+        void QueueResponse(ix::WebSocket *conn, SC2APIProtocol::Response *&response);
 
-    bool HasRequest();
-    bool HasResponse();
+        // If no connection is provided send it to the first connection attained.
+        void SendRequest(ix::WebSocket *conn = nullptr);
 
-    const RequestData& PeekRequest();
-    const ResponseData& PeekResponse();
+        void SendResponse(ix::WebSocket *conn = nullptr);
 
-    std::vector<const mg_connection*> connections_;
-private:
-    mg_context* mg_context_ = nullptr;
+        bool HasRequest();
 
-    std::queue<RequestData> requests_;
-    std::queue<ResponseData> responses_;
+        bool HasResponse();
 
-    std::mutex request_mutex_;
-    std::mutex response_mutex_;
-};
+        const RequestData &PeekRequest();
 
+        const ResponseData &PeekResponse();
+
+    private:
+        std::unique_ptr<ix::WebSocketServer> webSocketServer;
+        std::vector<ix::WebSocket *> clients;
+
+        std::queue<RequestData> requests;
+        std::queue<ResponseData> responses;
+
+        std::mutex request_mutex;
+        std::mutex response_mutex;
+    };
 }
