@@ -50,8 +50,6 @@ else ()
         set(protoc_out_cc "${proto_generation_dir}/${proto_name_we}.pb.cc")
         set(protoc_out_h "${proto_generation_dir}/${proto_name_we}.pb.h")
 
-        message("Checking for Protoc: ${Protobuf_PROTOC_EXECUTABLE}")
-
         add_custom_command(
             OUTPUT
                 "${protoc_out_cc}"
