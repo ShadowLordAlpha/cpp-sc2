@@ -3,7 +3,6 @@
 #include <iostream>
 #include <cassert>
 #include <chrono>
-#include <format>
 #include <IXNetSystem.h>
 #include <string>
 #include <spdlog/spdlog.h>
@@ -26,7 +25,7 @@ namespace sc2
         ix::initNetSystem();
         verbose_ = verbose;
 
-        connection.setUrl(std::format("ws://{}:{}/sc2api", address, port));
+        connection.setUrl(fmt::format("ws://{}:{}/sc2api", address, port));
 
         connection.setHandshakeTimeout(120);
         connection.enableAutomaticReconnection();
