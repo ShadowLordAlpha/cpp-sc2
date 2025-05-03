@@ -31,7 +31,6 @@ add_library(sc2api STATIC ${sc2api_sources})
 target_include_directories(sc2api PUBLIC "${PROJECT_SOURCE_DIR}/include")
 
 find_package(ixwebsocket CONFIG REQUIRED)
-find_package(spdlog CONFIG REQUIRED)
 target_link_libraries(sc2api PUBLIC sc2protocol spdlog::spdlog ixwebsocket::ixwebsocket)
 
 if (MSVC)

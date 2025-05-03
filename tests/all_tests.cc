@@ -15,6 +15,7 @@
 #include <iostream>
 #include <string>
 
+
 // Tests. Easier to extern than create a .h for a single function prototype.
 namespace sc2 {
 bool TestAbilityRemap(int argc, char** argv);
@@ -33,6 +34,7 @@ bool TestAbilityRemap(int argc, char** argv);
 
 //*************************************************************************************************
 int main(int argc, char* argv[]) {
+
     bool success = true;
 
     // Add tests here.

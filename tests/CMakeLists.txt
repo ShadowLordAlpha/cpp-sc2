@@ -27,4 +27,18 @@ if (BUILD_SC2_RENDERER)
     target_compile_definitions(all_tests PRIVATE -DBUILD_SC2_RENDERER)
 endif ()
 
-target_link_libraries(all_tests sc2api sc2lib sc2utils)
+target_link_libraries(all_tests PRIVATE sc2api sc2lib sc2utils spdlog::spdlog)
+
+# GTest Code
+enable_testing()
+
+find_package(GTest CONFIG REQUIRED)
+add_executable(test_sc2utils
+        sc2utils/test_arg_parser.cpp
+)
+
+target_link_libraries(test_sc2utils GTest::gtest_main sc2api sc2lib sc2utils spdlog::spdlog)
+
+include(GoogleTest)
+gtest_discover_tests(test_sc2utils)
+

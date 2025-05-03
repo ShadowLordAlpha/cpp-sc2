@@ -9,11 +9,14 @@
     "name" : "protobuf",
     "version>=" : "5.29.3"
   }, {
-    "name" : "spdlog",
-    "version>=" : "1.15.2"
-  }, {
     "name" : "ixwebsocket",
     "version>=" : "11.4.5",
-    "default-features": false
+    "default-features" : false
+  }, {
+    "name" : "gtest",
+    "version>=" : "1.16.0#1"
+  }, {
+    "name" : "spdlog",
+    "version>=" : "1.15.2"
   } ]
 }

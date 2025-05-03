@@ -68,6 +68,8 @@ if (MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>)
 endif ()
 
+find_package(spdlog CONFIG REQUIRED)
+
 if (BUILD_API_EXAMPLES)
     add_subdirectory(examples)
 endif ()

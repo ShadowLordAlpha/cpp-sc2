@@ -1,8 +1,7 @@
 #include "sc2api/sc2_args.h"
 
-#include "sc2utils/sc2_arg_parser.h"
+#include "sc2utils/arg_parser.h"
 #include "sc2utils/sc2_manage_process.h"
-#include "sc2utils/sc2_property_reader.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -14,24 +13,27 @@ const char* StarCraft2UserDirectory = "StarCraft II";
 const char* StarCraft2ExecuteInfo = "ExecuteInfo.txt";
 
 bool ParseFromFile(ProcessSettings& process_settings, GameSettings& game_settings, const std::string& file_name) {
-    sc2::PropertyReader reader;
+    sc2::ArgParser reader;
 
-    if (!reader.LoadFile(file_name)) {
+    reader.addArguments({
+        {"executable", {"-e", "--executable"}, "", true},
+        {"realtime", {"-r", "--realtime"}, ""},
+        {"port", {"-p", "--port"}, ""},
+        {"map", {"-m", "--map"}, ""},
+        {"timeout", {"-t", "--timeout"}, ""},
+    });
+
+    if (!reader.parse(file_name)) {
         return false;
     }
 
-    reader.ReadString("executable", process_settings.process_path);
-    int real_time = 0;
-    reader.ReadInt("realtime", real_time);
-    if (real_time) {
-        process_settings.realtime = true;
-    }
-    else {
-        process_settings.realtime = false;
-    }
-    reader.ReadInt("port", process_settings.port_start);
-    reader.ReadString("map", game_settings.map_name);
-    reader.ReadInt("timeout", process_settings.timeout_ms);
+    process_settings.process_path = reader.get<std::string>("executable").value();
+    process_settings.realtime = reader.get<bool>("realtime").value_or(process_settings.realtime);
+
+    process_settings.port_start = reader.get<int>("port").value_or(process_settings.port_start);
+    game_settings.map_name = reader.get<std::string>("map").value_or(game_settings.map_name);
+    process_settings.timeout_ms = reader.get<int>("timeout").value_or(process_settings.timeout_ms);
+
     return true;
 }
 
@@ -62,30 +64,35 @@ std::string ParseExecuteInfo(ProcessSettings& process_settings, GameSettings& ga
 
 bool ParseSettings(int argc, char* argv[], ProcessSettings& process_settings, GameSettings& game_settings) {
     assert(argc);
-    ArgParser arg_parser(argv[0]);
+    ArgParser arg_parser{};
 
     // NB (alkurbatov): First attempt to parse from the SC2 user directory.
     // Note that ExecuteInfo.txt may be missing on Linux and command line
     // options should be used instead.
     std::string parse_error = ParseExecuteInfo(process_settings, game_settings);
 
-    arg_parser.AddOptions({
-        { "-e", "--executable", "The path to StarCraft II.", false },
-        { "-s", "--step_size", "How many steps to take per call.", false },
-        { "-p", "--port", "The port to make StarCraft II listen on.", false },
-        { "-r", "--realtime", "Whether to run StarCraft II in real time or not.", false },
-        { "-m", "--map", "Which map to run.", false },
-        { "-t", "--timeout", "Timeout for how long the library will block for a response.", false },
-        { "-d", "--data_version", "Data hash of the game version to run (see versions.json)", false }
+    arg_parser.addArguments({
+        { "executable", {"-e", "--executable"}, "The path to StarCraft II." },
+        { "step_size", {"-s", "--step_size"}, "How many steps to take per call." },
+        { "port", {"-p", "--port"}, "The port to make StarCraft II listen on." },
+        { "realtime", {"-r", "--realtime"}, "Whether to run StarCraft II in real time or not." },
+        { "map", {"-m", "--map"}, "Which map to run." },
+        { "timeout", {"-t", "--timeout"}, "Timeout for how long the library will block for a response." },
+        { "data_version", {"-d", "--data_version"}, "Data hash of the game version to run (see versions.json)" }
     });
+
+    if (arg_parser.parse(argc, argv))
+    {
+
+    }
 
     if (const char* sc2path = std::getenv("SC2PATH"))
         process_settings.process_path = sc2path;
 
-    if (!arg_parser.Parse(argc, argv))
+    if (!arg_parser.parse(argc, argv))
         return false;
 
-    arg_parser.Get("executable", process_settings.process_path);
+    process_settings.process_path = arg_parser.get<std::string>("executable").value_or(process_settings.process_path);
     if (process_settings.process_path.length() < 2) {
         std::cerr << "Path to StarCraft II executable is not specified.\n";
 
@@ -98,27 +105,12 @@ bool ParseSettings(int argc, char* argv[], ProcessSettings& process_settings, Ga
         return false;
     }
 
-    std::string step_size;
-    if (arg_parser.Get("step_size", step_size)) {
-        process_settings.step_size = atoi(step_size.c_str());
-    }
+    process_settings.step_size = arg_parser.get<int>("step_size").value_or(5);
+    process_settings.realtime = arg_parser.get<bool>("realtime").value_or(false);
+    process_settings.timeout_ms = arg_parser.get<int>("timeout").value_or(60000);
+    process_settings.data_version = arg_parser.get<std::string>("data_version").value_or("");
 
-    std::string realtime;
-    if (arg_parser.Get("realtime", realtime)) {
-        process_settings.realtime = realtime == "true" ? true : false;
-    }
-
-    std::string timeout;
-    if (arg_parser.Get("timeout", timeout)) {
-        process_settings.timeout_ms = atoi(timeout.c_str());
-    }
-
-    std::string data_version;
-    if (arg_parser.Get("data_version", data_version)){
-        process_settings.data_version = data_version;
-    }
-
-    arg_parser.Get("map", game_settings.map_name);
+    game_settings.map_name = arg_parser.get<std::string>("map").value_or("");
 
     return true;
 }
