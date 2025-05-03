@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - Ladder
     paths-ignore:
       - '.github/ISSUE_TEMPLATE/**'
       - 'docs/**'
