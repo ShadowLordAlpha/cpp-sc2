@@ -2,7 +2,6 @@
 
 #include "sc2utils/arg_parser.h"
 #include "sc2utils/sc2_manage_process.h"
-#include "sc2utils/sc2_property_reader.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -14,24 +13,27 @@ const char* StarCraft2UserDirectory = "StarCraft II";
 const char* StarCraft2ExecuteInfo = "ExecuteInfo.txt";
 
 bool ParseFromFile(ProcessSettings& process_settings, GameSettings& game_settings, const std::string& file_name) {
-    sc2::PropertyReader reader;
+    sc2::ArgParser reader;
 
-    if (!reader.LoadFile(file_name)) {
+    reader.addArguments({
+        {"executable", {"-e", "--executable"}, "", true},
+        {"realtime", {"-r", "--realtime"}, ""},
+        {"port", {"-p", "--port"}, ""},
+        {"map", {"-m", "--map"}, ""},
+        {"timeout", {"-t", "--timeout"}, ""},
+    });
+
+    if (!reader.parse(file_name)) {
         return false;
     }
 
-    reader.ReadString("executable", process_settings.process_path);
-    int real_time = 0;
-    reader.ReadInt("realtime", real_time);
-    if (real_time) {
-        process_settings.realtime = true;
-    }
-    else {
-        process_settings.realtime = false;
-    }
-    reader.ReadInt("port", process_settings.port_start);
-    reader.ReadString("map", game_settings.map_name);
-    reader.ReadInt("timeout", process_settings.timeout_ms);
+    process_settings.process_path = reader.get<std::string>("executable").value();
+    process_settings.realtime = reader.get<bool>("realtime").value_or(process_settings.realtime);
+
+    process_settings.port_start = reader.get<int>("port").value_or(process_settings.port_start);
+    game_settings.map_name = reader.get<std::string>("map").value_or(game_settings.map_name);
+    process_settings.timeout_ms = reader.get<int>("timeout").value_or(process_settings.timeout_ms);
+
     return true;
 }
 
@@ -78,6 +80,11 @@ bool ParseSettings(int argc, char* argv[], ProcessSettings& process_settings, Ga
         { "timeout", {"-t", "--timeout"}, "Timeout for how long the library will block for a response." },
         { "data_version", {"-d", "--data_version"}, "Data hash of the game version to run (see versions.json)" }
     });
+
+    if (arg_parser.parse(argc, argv))
+    {
+
+    }
 
     if (const char* sc2path = std::getenv("SC2PATH"))
         process_settings.process_path = sc2path;

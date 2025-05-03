@@ -63,8 +63,8 @@ namespace sc2
     }
 
     void trim(std::string &s) {
-        s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) { return !std::isspace(ch); }));
-        s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) { return !std::isspace(ch); }).base(), s.end());
+        s.erase(s.find_last_not_of(" \n\r\t")+1);
+        s.erase(0, s.find_first_not_of(" \n\r\t"));
     }
 
     bool ArgParser::parse(const std::string &filename)
@@ -90,7 +90,7 @@ namespace sc2
             auto pos = line.find('=');
             if (pos == std::string::npos)
             {
-                SPDLOG_WARN("Invalid line in argument file (missing '='): {}", line);
+                SPDLOG_WARN("Invalid line in argument file (missing '='): [{}]", line);
                 continue;
             }
             std::string key = line.substr(0, pos);
