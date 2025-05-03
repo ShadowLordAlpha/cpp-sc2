@@ -79,9 +79,9 @@ namespace sc2
         //! \param response A pointer to the Response to queue.
         void PushResponse(SC2APIProtocol::Response *&response);
 
+        ix::WebSocket connection; //!< A pointer to the civetweb connection object.
     private:
         bool verbose_; //!< Will print extra information to console if enabled.
-        ix::WebSocket connection; //!< A pointer to the civetweb connection object.
 
         std::function<void()> timeout_callback_; //!< Timeout callback.
         std::function<void()> connection_closed_callback_; //!< Timeout callback.

@@ -35,12 +35,12 @@ int main(int argc, char* argv[]) {
     while (!sc2::PollKeyPress()) {
         // If the proxy has messages forward them to sc2.
         if (server.HasRequest()) {
-            server.SendRequest(client.connection_);
+            server.SendRequest(&client.connection);
 
             // Block for sc2's response then queue it.
             SC2APIProtocol::Response* response = nullptr;
             client.Receive(response, 100000);
-            server.QueueResponse(client.connection_, response);
+            server.QueueResponse(&client.connection, response);
 
             std::cout << "Sending response" << std::endl;
 
