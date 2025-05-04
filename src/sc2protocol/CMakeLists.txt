@@ -1,61 +1,86 @@
-set(proto_files
-    "${sc2protocol_SOURCE_DIR}/s2clientprotocol/common.proto"
-    "${sc2protocol_SOURCE_DIR}/s2clientprotocol/data.proto"
-    "${sc2protocol_SOURCE_DIR}/s2clientprotocol/debug.proto"
-    "${sc2protocol_SOURCE_DIR}/s2clientprotocol/error.proto"
-    "${sc2protocol_SOURCE_DIR}/s2clientprotocol/query.proto"
-    "${sc2protocol_SOURCE_DIR}/s2clientprotocol/raw.proto"
-    "${sc2protocol_SOURCE_DIR}/s2clientprotocol/sc2api.proto"
-    "${sc2protocol_SOURCE_DIR}/s2clientprotocol/score.proto"
-    "${sc2protocol_SOURCE_DIR}/s2clientprotocol/spatial.proto"
-    "${sc2protocol_SOURCE_DIR}/s2clientprotocol/ui.proto")
+# ----------------------------------------------------------------------------
+# Build logic for sc2protocol library (subdirectory)
+#
+# This CMake file:
+#   - Compiles all .proto files in 's2clientprotocol' into C++ sources/headers with protobuf_generate_cpp()
+#   - Builds a static library for the protocol
+#   - Installs only the generated C++ headers, not the .proto files, and CMake export targets
+#
+# Requirements:
+#   * Protobuf, found via find_package
+#   * CMake >= 3.14 (for protobuf_generate_cpp TARGET argument)
+#
+# Exported target: cppsc2::sc2protocol
+#
+# Usage example in downstream CMake:
+#   find_package(sc2protocol CONFIG REQUIRED)
+#   target_link_libraries(your_target PRIVATE cppsc2::sc2protocol)
+#
+# NOTE: .proto files are NOT installed. Consume the generated C++ headers and link the library.
+#       If you wish to regenerate code, please clone and build this project directly.
+#
+# For more details or troubleshooting, see the main README.md or docs/build.md.
+# ----------------------------------------------------------------------------
 
-# Create the output directory for generated protos.
-set(proto_generation_dir "${PROJECT_BINARY_DIR}/generated/s2clientprotocol")
-file(MAKE_DIRECTORY "${proto_generation_dir}")
+# -------------------------------
+# Fetch Proto files
+# -------------------------------
+include(FetchContent)
 
-foreach(proto ${proto_files})
-    get_filename_component(proto_name ${proto} NAME_WE)
-    list(APPEND proto_src
-            "${proto_generation_dir}/${proto_name}.pb.cc"
-            "${proto_generation_dir}/${proto_name}.pb.h")
-endforeach()
+if(NOT sc2protocol_SOURCE_DIR)
+    message(STATUS "Fetching s2client-proto sources via FetchContent...")
+    FetchContent_Declare(
+            sc2proto
+            GIT_REPOSITORY https://github.com/Blizzard/s2client-proto.git
+            GIT_TAG a6d60f4cce7886a3be2bf7af2c1b12fdab6e9c63
+            GIT_SHALLOW TRUE
+    )
+    FetchContent_MakeAvailable(sc2proto)
+endif()
 
-add_library(sc2protocol STATIC ${proto_src})
-
-target_include_directories(sc2protocol SYSTEM PUBLIC "${PROJECT_BINARY_DIR}/generated")
-
+# -------------------------------
+# Dependencies
+# -------------------------------
 find_package(Protobuf CONFIG REQUIRED)
+
+# -------------------------------
+# Proto file setup
+# -------------------------------
+set(PROTO_DIR "${sc2proto_SOURCE_DIR}")
+file(GLOB PROTO_FILES "${PROTO_DIR}/s2clientprotocol/*.proto")
+
+# Generated code goes into build dir, namespaced by proto module
+set(PROTO_GEN_DIR "${PROJECT_BINARY_DIR}/generated/s2clientprotocol")
+
+if(NOT PROTO_FILES)
+    message(FATAL_ERROR "No *.proto files found in ${sc2proto_SOURCE_DIR}/s2clientprotocol. Check path.")
+endif()
+
+# Ensure CMake reconfigures if proto file set changes.
+# This avoids common GLOB pitfalls (new/removed files detected). See:
+# https://cmake.org/cmake/help/latest/command/file.html#glob
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${PROTO_DIR}/*.proto")
+
+# -------------------------------
+# Library target
+# -------------------------------
+# Generate the library target before generating the cpp code from protobuf
+add_library(sc2protocol STATIC OBJECT ${PROTO_FILES})
+
 target_link_libraries(sc2protocol PUBLIC protobuf::libprotobuf)
+target_include_directories(sc2protocol PUBLIC "$<BUILD_INTERFACE:${PROTO_GEN_DIR}>")
 
-# Copy precompiled protos to the generated directory
-if (WSL2_CROSS_COMPILE)
-    foreach (proto ${proto_files})
-        get_filename_component(proto_name ${proto} NAME_WE)
-        file(
-            COPY
-                "${protos_SOURCE_DIR}/${proto_name}.pb.h"
-                "${protos_SOURCE_DIR}/${proto_name}.pb.cc"
-            DESTINATION
-                "${proto_generation_dir}")
-    endforeach ()
-# Compile protos with protoc
-else ()
-    foreach (proto ${proto_files})
-        get_filename_component(proto_name_we ${proto} NAME_WE)
-        set(protoc_out_cc "${proto_generation_dir}/${proto_name_we}.pb.cc")
-        set(protoc_out_h "${proto_generation_dir}/${proto_name_we}.pb.h")
+# -------------------------------
+# Protobuf code generation
+# -------------------------------
+protobuf_generate(
+        TARGET sc2protocol              # Generated files will be associated with this target
+        IMPORT_DIRS "${PROTO_DIR}"
+        PROTOC_OUT_DIR "${PROTO_GEN_DIR}"
+)
 
-        add_custom_command(
-            OUTPUT
-                "${protoc_out_cc}"
-                "${protoc_out_h}"
-            COMMAND
-                "${Protobuf_PROTOC_EXECUTABLE}" # "${PROJECT_BINARY_DIR}/bin/protoc"
-                "-I=${sc2protocol_SOURCE_DIR}"
-                "--cpp_out=${PROJECT_BINARY_DIR}/generated"
-                "${proto}"
-            VERBATIM
-        )
-    endforeach()
-endif ()
+# Show what is being built in a clear fashion for CI/logs/developers
+message(STATUS "sc2protocol: Added proto files:")
+foreach(proto_file ${PROTO_FILES})
+    message(STATUS "  ${proto_file}")
+endforeach()
