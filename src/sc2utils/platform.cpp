@@ -10,7 +10,7 @@
 #include <vector>
 #include <filesystem>
 #include <iostream>
-
+#include <spdlog/spdlog.h>
 
 #if defined(_WIN32)
 
@@ -22,7 +22,7 @@
 #include <codecvt>
 #include <locale>
 
-#include <spdlog/spdlog.h>
+
 
 #elif defined(__APPLE__)
 
