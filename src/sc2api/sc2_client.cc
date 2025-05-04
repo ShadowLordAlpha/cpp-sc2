@@ -1553,21 +1553,21 @@ void ControlImp::ResolveMap (const std::string& map_name, SC2APIProtocol::Reques
 
     // Absolute path
     SC2APIProtocol::LocalMap* local_map = request->mutable_local_map();
-    if (fs::DoesFileExist(map_name)) {
+    if (std::filesystem::exists(map_name)) {
         local_map->set_map_path(map_name);
         return;
     }
 
     // Relative path - Game maps directory
     auto game_relative = fs::GetGameMapsDirectory(pi_.process_path) / map_name;
-    if (fs::DoesFileExist(game_relative)) {
+    if (std::filesystem::exists(game_relative)) {
         local_map->set_map_path(map_name);
         return;
     }
 
     // Relative path - Library maps directory
     std::string library_relative = fs::GetLibraryMapsDirectory() + map_name;
-    if (fs::DoesFileExist(library_relative)) {
+    if (std::filesystem::exists(library_relative)) {
         local_map->set_map_path(library_relative);
         return;
     }

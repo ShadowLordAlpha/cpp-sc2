@@ -63,10 +63,6 @@
 
 namespace sc2::fs
 {
-    bool DoesFileExist(const std::filesystem::path &path)
-    {
-        return std::filesystem::exists(path);
-    }
 
     bool HasExtension(const std::filesystem::path &path, const std::string &extension)
     {

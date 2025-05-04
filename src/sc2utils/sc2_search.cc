@@ -1,4 +1,4 @@
-#include "sc2lib/sc2_search.h"
+#include "sc2utils/sc2_search.h"
 
 #include <cmath>
 

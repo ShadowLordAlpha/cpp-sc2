@@ -16,13 +16,6 @@ namespace sc2::fs
     // TODO: proper documentation
 
     /**
-     * @brief Convienence method to make sure a file exists
-     * @param path The Filesystem to check
-     * @return True if the file exists
-     */
-    bool DoesFileExist(const std::filesystem::path &path);
-
-    /**
      * TODO: extension assumes the leading . is included
      * @param path
      * @param extension

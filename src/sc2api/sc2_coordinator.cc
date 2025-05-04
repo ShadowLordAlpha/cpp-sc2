@@ -717,7 +717,7 @@ bool Coordinator::LoadSettings(int argc, char** argv) {
 }
 
 void Coordinator::LaunchStarcraft() {
-    if (!fs::DoesFileExist(imp_->process_settings_.process_path)) {
+    if (!std::filesystem::exists(imp_->process_settings_.process_path)) {
         std::cerr << "Executable path can't be found, try running the StarCraft II executable first." << std::endl;
         if (!imp_->process_settings_.process_path.empty()) {
             std::cerr << imp_->process_settings_.process_path << " does not exist on your filesystem.";
@@ -952,7 +952,7 @@ bool Coordinator::SetReplayPath(const std::string& path) {
 }
 
 bool Coordinator::LoadReplayList(const std::string& file_path) {
-    if (!fs::DoesFileExist(file_path))
+    if (!std::filesystem::exists(file_path))
         return false;
 
     imp_->replay_settings_.replay_file.clear();
