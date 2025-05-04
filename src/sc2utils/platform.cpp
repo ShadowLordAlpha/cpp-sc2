@@ -21,7 +21,6 @@
 #include <tchar.h>
 #include <codecvt>
 #include <locale>
-#include <optional>
 
 #include <spdlog/spdlog.h>
 

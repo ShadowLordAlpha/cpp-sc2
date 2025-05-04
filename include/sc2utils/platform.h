@@ -1,13 +1,12 @@
 #pragma once
 
-#include <cstdint>
 #include <vector>
 #include <string>
 #include <filesystem>
+#include <optional>
 
 #if defined(_WIN32)
 #define NOMINMAX
-    #include <Windows.h>
 #endif
 
 
