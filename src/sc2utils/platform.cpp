@@ -389,25 +389,6 @@ std::string GetGameMapsDirectory(const std::string& process_path) {
     return result;
 }
 
-int _kbhit() {
-    static const int STDIN = 0;
-    static bool initialized = false;
-
-    if (!initialized) {
-        // Use termios to turn off line buffering
-        termios term;
-        tcgetattr(STDIN, &term);
-        term.c_lflag &= ~ICANON;
-        tcsetattr(STDIN, TCSANOW, &term);
-        setbuf(stdin, NULL);
-        initialized = true;
-    }
-
-    int bytesWaiting;
-    ioctl(STDIN, FIONREAD, &bytesWaiting);
-    return bytesWaiting;
-}
-
 #endif
 
     void SleepFor(unsigned int ms)
@@ -417,10 +398,25 @@ int _kbhit() {
 
     bool PollKeyPress()
     {
-        if (_kbhit())
-            return true;
-        // TODO: Consume the character.
-        return false;
+#ifdef _WIN32
+        return _kbhit();
+#else
+        static const int STDIN = 0;
+        static bool initialized = false;
+
+        if (!initialized) {
+            termios term;
+            tcgetattr(STDIN, &term);
+            term.c_lflag &= ~ICANON;
+            tcsetattr(STDIN, TCSANOW, &term);
+            setbuf(stdin, NULL);
+            initialized = true;
+        }
+
+        int bytesWaiting;
+        ioctl(STDIN, FIONREAD, &bytesWaiting);
+        return bytesWaiting > 0;
+#endif
     }
 
     std::optional<std::filesystem::path> folderExistsWithName(const std::filesystem::path& parent, const std::string& folder_name)
