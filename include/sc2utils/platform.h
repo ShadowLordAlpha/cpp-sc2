@@ -23,15 +23,12 @@ namespace sc2::fs
      */
     bool HasExtension(const std::filesystem::path &path, const std::string &extension);
     std::optional<std::vector<std::filesystem::path>> ScanDirectory(const std::filesystem::path &path, bool full_path = false, bool list_directories = false);
-    std::string GetGameDataDirectory();
-    std::string GetLibraryMapsDirectory();
-    std::filesystem::path GetGameMapsDirectory(const std::filesystem::path &path);
+
 }
 
 namespace sc2
 {
-    bool FindLatestExe(std::filesystem::path &path);
-    bool FindBaseExe(std::filesystem::path &path, uint32_t base_build);
+
 
     void SleepFor(unsigned int ms);
     bool PollKeyPress();

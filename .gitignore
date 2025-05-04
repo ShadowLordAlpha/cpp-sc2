@@ -22,6 +22,8 @@
 # Cmake default build folders
 cmake-build-debug/
 cmake-build-release/
+cmake-build-releasedocker/
+cmake-build-debugdocker/
 
 # clion files
 .idea/

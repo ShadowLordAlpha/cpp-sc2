@@ -16,6 +16,8 @@
 #include <cassert>
 #include <thread>
 
+#include "sc2utils/sc2_utils.h"
+
 namespace sc2 {
 
 void RunParallel(const std::function<void(Agent* a)>& step, std::vector<Agent*>& agents) {
@@ -243,7 +245,7 @@ bool CoordinatorImp::ShouldRelaunch(ReplayObserver* r) {
 
     // Version failed to download. Just continue with trying to load in current version.
     // It will likely fail, and then just skip past this replay.
-    if (!FindBaseExe(process_settings_.process_path, replay_info.base_build))
+    if (!FindSC2VersionExe(process_settings_.process_path, replay_info.base_build))
         return false;
 
     std::cout << "Replay is from a different version. Relaunching client into the correct version..." << std::endl;

@@ -95,42 +95,23 @@ namespace sc2::fs
         return result;
     }
 
-    std::string GetGameDataDirectory()
-    {
-#if defined(_WIN32)
-        unsigned int csidl = CSIDL_PERSONAL;
-        WCHAR windowsPath[MAX_PATH];
-
-        HRESULT result = SHGetFolderPathW(nullptr, csidl, nullptr, SHGFP_TYPE_CURRENT, windowsPath);
-
-        if (result == S_OK)
-        {
-            std::wstring_convert<std::codecvt_utf8_utf16<WCHAR>, WCHAR> convertor;
-            return convertor.to_bytes(windowsPath);
-        }
-
-        return std::string();
-#endif
-    }
-
-    std::string GetLibraryMapsDirectory()
-    {
-#if defined(_WIN32)
-        std::string result = ""; // GetExePath(); // TODO: this doesn't really seem right?
-        result = result.substr(0, result.find_last_of("\\"));
-        result = result.substr(0, result.find_last_of("\\"));
-        result = result.substr(0, result.find_last_of("\\"));
-        result += "\\maps\\";
-        return result;
-#endif
-    }
-
-    std::filesystem::path GetGameMapsDirectory(const std::filesystem::path &path)
-    {
-#if defined(_WIN32)
-        return path.parent_path().parent_path().parent_path() / "maps";
-#endif
-    }
+//     std::string GetGameDataDirectory()
+//     {
+// #if defined(_WIN32)
+//         unsigned int csidl = CSIDL_PERSONAL;
+//         WCHAR windowsPath[MAX_PATH];
+//
+//         HRESULT result = SHGetFolderPathW(nullptr, csidl, nullptr, SHGFP_TYPE_CURRENT, windowsPath);
+//
+//         if (result == S_OK)
+//         {
+//             std::wstring_convert<std::codecvt_utf8_utf16<WCHAR>, WCHAR> convertor;
+//             return convertor.to_bytes(windowsPath);
+//         }
+//
+//         return std::string();
+// #endif
+//     }
 }
 
 
@@ -212,40 +193,6 @@ static std::string GetExePath() {
 #endif
 }
 
-std::string GetLibraryMapsDirectory() {
-    std::string result = GetExePath();
-
-    char* resolvedPath = realpath(result.c_str(), nullptr);
-    if (resolvedPath != nullptr) {
-        result = resolvedPath;
-        free(resolvedPath);
-    }
-
-    result = result.substr(0, result.find_last_of("/"));
-    result = result.substr(0, result.find_last_of("/"));
-    result = result.substr(0, result.find_last_of("/"));
-    result += "/maps/";
-    return result;
-}
-
-std::string GetGameMapsDirectory(const std::string& process_path) {
-    std::string result = process_path;
-#if defined(__linux__)
-    result = result.substr(0, result.find_last_of("/"));
-    result = result.substr(0, result.find_last_of("/"));
-    result = result.substr(0, result.find_last_of("/"));
-#else
-    result = result.substr(0, result.find_last_of("/"));
-    result = result.substr(0, result.find_last_of("/"));
-    result = result.substr(0, result.find_last_of("/"));
-    result = result.substr(0, result.find_last_of("/"));
-    result = result.substr(0, result.find_last_of("/"));
-    result = result.substr(0, result.find_last_of("/"));
-#endif
-    result += "/maps/";
-    return result;
-}
-
 #endif
 
     void SleepFor(unsigned int ms)
@@ -276,79 +223,10 @@ std::string GetGameMapsDirectory(const std::string& process_path) {
 #endif
     }
 
-    std::optional<std::filesystem::path> folderExistsWithName(const std::filesystem::path& parent, const std::string& folder_name)
-    {
-        auto checking = parent;
-        while (checking.has_parent_path()) {
-            checking = checking.parent_path();
-            if (checking.filename() == folder_name) {
-                return checking;
-            }
-    }
-        return std::nullopt;
-    }
-
-    bool FindBaseExe(std::filesystem::path& path, uint32_t base_build) {
-        const std::string base_folder = "Base" + std::to_string(base_build);
-
-        // Get the versions path.
-        auto versionFolder = folderExistsWithName(path, "Versions");
-        if (!versionFolder)
-        {
-            return true; // TODO: return folder instead? maybe we need to return false here instead?
-        }
-
-        path = versionFolder.value() / base_folder / path.filename();
-        return std::filesystem::exists(path);
-    }
-
-    std::optional<std::filesystem::path> getNewestFolder(const std::vector<std::filesystem::path>& folders) {
-        std::optional<std::filesystem::path> newest;
-        std::filesystem::file_time_type newest_time;
-
-        for (const auto& folder : folders) {
-            if (std::filesystem::is_directory(folder)) {
-                auto mod_time = std::filesystem::last_write_time(folder);
-                if (!newest || mod_time > newest_time) {
-                    newest = folder;
-                    newest_time = mod_time;
-                }
-            }
-        }
-        return newest;
-    }
 
 
-    bool FindLatestExe(std::filesystem::path &path)
-    {
-        if (path.empty() || !std::filesystem::exists(path))
-            return false;
 
-        // Get the versions path.
-        auto versionFolder = folderExistsWithName(path, "Versions");
-        if (!versionFolder)
-        {
-            return true; // TODO: return folder instead? maybe we need to return false here instead?
-        }
 
-        // Get a list of all subfolders.
-        auto subfolders = fs::ScanDirectory(versionFolder.value(), true, true);
-        if (!subfolders)
-        {
-            return false;
-        }
 
-        // Find the newest one
-        auto baseFolder = getNewestFolder(subfolders.value());
-        if (!baseFolder)
-        {
-            return false;
-        }
 
-        // Add the executable name
-        path = baseFolder.value() / path.filename();
-
-        // Check if it exists and return
-        return std::filesystem::exists(path);
-    }
 }

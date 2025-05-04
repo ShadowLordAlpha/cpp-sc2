@@ -19,6 +19,7 @@
 #include <fstream>
 
 #include "s2clientprotocol/sc2api.pb.h"
+#include "sc2utils/sc2_utils.h"
 
 namespace {
 
@@ -1559,16 +1560,16 @@ void ControlImp::ResolveMap (const std::string& map_name, SC2APIProtocol::Reques
     }
 
     // Relative path - Game maps directory
-    auto game_relative = fs::GetGameMapsDirectory(pi_.process_path) / map_name;
+    auto game_relative = GetGameMapsDirectory(pi_.process_path) / map_name;
     if (std::filesystem::exists(game_relative)) {
         local_map->set_map_path(map_name);
         return;
     }
 
     // Relative path - Library maps directory
-    std::string library_relative = fs::GetLibraryMapsDirectory() + map_name;
+    auto library_relative = GetLibraryMapsDirectory() / map_name;
     if (std::filesystem::exists(library_relative)) {
-        local_map->set_map_path(library_relative);
+        local_map->set_map_path(library_relative.string());
         return;
     }
 

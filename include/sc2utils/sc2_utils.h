@@ -1,9 +1,20 @@
 #pragma once
 
 #include "sc2api/sc2_common.h"
+#include "sc2api/sc2_interfaces.h"
+#include "sc2api/sc2_unit.h"
 #include "sc2api/sc2_map_info.h"
 
+#include <filesystem>
+
 namespace sc2 {
+
+    std::filesystem::path GetGameDataDirectory(); ///< Get the GameData directory (the one with ExecuteInfo.txt
+    std::filesystem::path GetLibraryMapsDirectory(); ///< Get the path to the maps folder from teh library running
+    std::filesystem::path GetGameMapsDirectory(const std::filesystem::path &path); ///< Get the maps from the processes path
+
+    bool FindLatestSC2Exe(std::filesystem::path &path); // TODO: return path
+    bool FindSC2VersionExe(std::filesystem::path &path, uint32_t base_build); // TODO: return path
 
     struct ExpansionParameters {
         // Some nice parameters that generally work but may require tuning for certain maps.

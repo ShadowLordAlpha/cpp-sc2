@@ -1,11 +1,13 @@
 #include "sc2api/sc2_args.h"
 
 #include "sc2utils/arg_parser.h"
+#include "sc2utils/sc2_utils.h"
 #include "sc2utils/platform.h"
 
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
+#include <filesystem>
 
 namespace sc2 {
 
@@ -44,7 +46,7 @@ bool ParseFromFile(ProcessSettings& process_settings, GameSettings& game_setting
 #endif
 
 std::string ParseExecuteInfo(ProcessSettings& process_settings, GameSettings& game_settings) {
-    std::string execute_info_filepath = fs::GetGameDataDirectory();
+    auto execute_info_filepath = GetGameDataDirectory();
     if (execute_info_filepath.empty())
         return "Failed to determine path to the user's directory";
 
@@ -53,10 +55,10 @@ std::string ParseExecuteInfo(ProcessSettings& process_settings, GameSettings& ga
     execute_info_filepath += kDirectoryDivider;
     execute_info_filepath += StarCraft2ExecuteInfo;
 
-    if (!ParseFromFile(process_settings, game_settings, execute_info_filepath))
-        return "Failed to parse " + execute_info_filepath;
+    if (!ParseFromFile(process_settings, game_settings, execute_info_filepath.string()))
+        return "Failed to parse " + execute_info_filepath.string();
 
-    if (!FindLatestExe(process_settings.process_path))
+    if (!FindLatestSC2Exe(process_settings.process_path))
         return "Failed to find latest StarCraft II executable in " + process_settings.process_path.string();
 
     return std::string();
