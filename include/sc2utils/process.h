@@ -125,7 +125,7 @@ namespace sc2
 #ifdef _WIN32
         HANDLE processHandle{nullptr};
         HANDLE threadHandle{nullptr};
-#elif
+#else
         pid_t processId;
 #endif
 
