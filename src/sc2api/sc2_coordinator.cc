@@ -71,7 +71,14 @@ int LaunchProcess(ProcessSettings& process_settings, Client* client, int window_
     }
 
     pi.process_path = process_settings.process_path;
-    if (!pi.process.start(process_settings.process_path, cl))
+    auto support_directory = pi.process_path.parent_path().parent_path().parent_path();
+    bool is64bit = pi.process_path.filename().string().find("_x64") != std::string::npos;
+    if (is64bit)
+        support_directory /= "Support64";
+    else
+        support_directory /= "Support";
+
+    if (!pi.process->start(process_settings.process_path, cl, support_directory))
     {
         std::cerr << "Unable to start sc2 executable with path: "
             << process_settings.process_path
@@ -79,7 +86,7 @@ int LaunchProcess(ProcessSettings& process_settings, Client* client, int window_
     }
     else
     {
-        std::cout << "Launched SC2 (" << process_settings.process_path << "), PID: " << std::to_string(pi.process.getProcessId()) << std::endl;
+        std::cout << "Launched SC2 " << pi.process << std::endl;
     }
 
     client->Control()->SetProcessInfo(pi);
@@ -202,7 +209,7 @@ CoordinatorImp::CoordinatorImp() :
 
 CoordinatorImp::~CoordinatorImp() {
     for (auto& p : process_settings_.process_info) {
-        p.process.terminate();
+        p.process->terminate();
     }
 }
 
@@ -632,7 +639,7 @@ bool CoordinatorImp::Relaunch(ReplayObserver* replay_observer) {
     ProcessInfo& pi = control->GetProcessInfo();
 
     // Try to kill SC2 then relaunch it
-    pi.process.terminate();
+    pi.process->terminate();
 
     // NOTE (alkurbatov): Reset the control interface
     // so internal state gets reinitialized.

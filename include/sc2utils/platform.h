@@ -30,27 +30,6 @@ namespace sc2::fs
 
 namespace sc2
 {
-    class Process
-    {
-    public:
-        ~Process();
-
-        bool start(const std::filesystem::path &process_path, const std::vector<std::string> &command_line);
-        bool isRunning();
-        [[nodiscard]] uint64_t getProcessId() const;
-        bool terminate();
-    private:
-#if defined(_WIN32)
-        HANDLE hProcess = nullptr;
-#else
-        uint64_t processId = 0;
-#endif
-
-    };
-}
-
-namespace sc2
-{
     bool FindLatestExe(std::filesystem::path &path);
     bool FindBaseExe(std::filesystem::path &path, uint32_t base_build);
 

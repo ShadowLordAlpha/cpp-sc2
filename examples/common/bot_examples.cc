@@ -121,7 +121,7 @@ void MultiplayerBot::PrintStatus(std::string msg) {
 void MultiplayerBot::OnGameStart() {
     game_info_ = Observation()->GetGameInfo();
     PrintStatus("game started.");
-    expansions_ = search::CalculateExpansionLocations(Observation(), Query());
+    expansions_ = CalculateExpansionLocations(Observation(), Query());
 
     //Temporary, we can replace this with observation->GetStartLocation() once implemented
     startLocation_ = Observation()->GetStartLocation();

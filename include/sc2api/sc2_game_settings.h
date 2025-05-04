@@ -4,21 +4,23 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "sc2utils/platform.h"
+#include "sc2utils/process.h"
 
 namespace sc2 {
 
 //! Information about a running process.
 struct ProcessInfo {
     ProcessInfo() = default;
-    ProcessInfo(const std::filesystem::path& path, const Process& process, int port) :
+    ProcessInfo(const std::filesystem::path& path, const std::shared_ptr<Process> process, int port) :
         process_path(path),
         process(process),
         port(port) {};
 
     std::filesystem::path process_path;
-    Process process;
+    std::shared_ptr<Process> process = std::make_shared<Process>();
     int port;
 };
 

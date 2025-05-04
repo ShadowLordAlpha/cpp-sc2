@@ -1839,8 +1839,8 @@ GameResponsePtr ControlImp::WaitForResponse() {
 
     // Step 1: distinguish between a hang and a crash. Lots of time has elapsed, so if there was a crash
     // it should have finished by now.
-    assert(pi_.process.getProcessId());
-    if (pi_.process.isRunning()) {
+    //assert(pi_.process);
+    if (pi_.process->isRunning()) {
         app_state_ = AppState::crashed;
         std::cout << "Game application has terminated unexpectedly." << std::endl;
         Error(ClientError::SC2AppFailure);
@@ -1879,12 +1879,12 @@ GameResponsePtr ControlImp::WaitForResponse() {
 
     // The game application has hanged. Try and terminate it.
     app_state_ = AppState::timeout;
-    for (int i = 0; i < 10 && pi_.process.isRunning(); ++i) {
-        pi_.process.terminate();
+    for (int i = 0; i < 10 && pi_.process->isRunning(); ++i) {
+        pi_.process->terminate();
         SleepFor(2000);
     }
 
-    if (pi_.process.isRunning()) {
+    if (pi_.process->isRunning()) {
         // Failed to kill the running process.
         app_state_ = AppState::timeout_zombie;
     }
