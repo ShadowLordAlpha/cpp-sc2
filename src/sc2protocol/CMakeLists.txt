@@ -73,6 +73,7 @@ target_include_directories(sc2protocol PUBLIC "$<BUILD_INTERFACE:${PROTO_GEN_DIR
 # -------------------------------
 # Protobuf code generation
 # -------------------------------
+file(MAKE_DIRECTORY "${PROTO_GEN_DIR}")  # <-- Add this line here
 protobuf_generate(
         TARGET sc2protocol              # Generated files will be associated with this target
         IMPORT_DIRS "${PROTO_DIR}"
