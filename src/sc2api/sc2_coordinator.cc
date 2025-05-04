@@ -6,8 +6,7 @@
 #include "sc2api/sc2_interfaces.h"
 #include "sc2api/sc2_replay_observer.h"
 
-#include "sc2utils/sc2_manage_process.h"
-#include "sc2utils/sc2_scan_directory.h"
+#include "sc2utils/platform.h"
 
 #include "s2clientprotocol/sc2api.pb.h"
 
@@ -72,14 +71,15 @@ int LaunchProcess(ProcessSettings& process_settings, Client* client, int window_
     }
 
     pi.process_path = process_settings.process_path;
-    pi.process_id = StartProcess(process_settings.process_path, cl);
-    if (!pi.process_id) {
+    if (!pi.process.start(process_settings.process_path, cl))
+    {
         std::cerr << "Unable to start sc2 executable with path: "
             << process_settings.process_path
             << std::endl;
     }
-    else {
-        std::cout << "Launched SC2 (" << process_settings.process_path << "), PID: " << std::to_string(pi.process_id) << std::endl;
+    else
+    {
+        std::cout << "Launched SC2 (" << process_settings.process_path << "), PID: " << std::to_string(pi.process.getProcessId()) << std::endl;
     }
 
     client->Control()->SetProcessInfo(pi);
@@ -202,7 +202,7 @@ CoordinatorImp::CoordinatorImp() :
 
 CoordinatorImp::~CoordinatorImp() {
     for (auto& p : process_settings_.process_info) {
-        TerminateProcess(p.process_id);
+        p.process.terminate();
     }
 }
 
@@ -268,7 +268,7 @@ void CoordinatorImp::StartReplay() {
 
         auto& replays = replay_settings_.replay_file;
         while (replays.size() != 0) {
-            const std::string& file = replay_settings_.replay_file.back();
+            const std::string& file = replay_settings_.replay_file.back().string();
 
             if (ShouldIgnore(r, file)) {
                 replays.pop_back();
@@ -629,10 +629,10 @@ bool CoordinatorImp::StartGame() {
 
 bool CoordinatorImp::Relaunch(ReplayObserver* replay_observer) {
     ControlInterface* control = replay_observer->Control();
-    const ProcessInfo& pi = control->GetProcessInfo();
+    ProcessInfo& pi = control->GetProcessInfo();
 
     // Try to kill SC2 then relaunch it
-    sc2::TerminateProcess(pi.process_id);
+    pi.process.terminate();
 
     // NOTE (alkurbatov): Reset the control interface
     // so internal state gets reinitialized.
@@ -717,7 +717,7 @@ bool Coordinator::LoadSettings(int argc, char** argv) {
 }
 
 void Coordinator::LaunchStarcraft() {
-    if (!DoesFileExist(imp_->process_settings_.process_path)) {
+    if (!fs::DoesFileExist(imp_->process_settings_.process_path)) {
         std::cerr << "Executable path can't be found, try running the StarCraft II executable first." << std::endl;
         if (!imp_->process_settings_.process_path.empty()) {
             std::cerr << imp_->process_settings_.process_path << " does not exist on your filesystem.";
@@ -932,7 +932,7 @@ void Coordinator::SetReplayPerspective(int player_id) {
 bool Coordinator::SetReplayPath(const std::string& path) {
     imp_->replay_settings_.replay_file.clear();
 
-    if (HasExtension(path, ".SC2Replay")) {
+    if (fs::HasExtension(path, ".SC2Replay")) {
         imp_->replay_settings_.replay_file.push_back(path);
     }
     else {
@@ -940,7 +940,11 @@ bool Coordinator::SetReplayPath(const std::string& path) {
 
         // Gather and append all files from the directory.
         if (!imp_->replay_settings_.replay_dir.empty()) {
-            scan_directory(imp_->replay_settings_.replay_dir.c_str(), imp_->replay_settings_.replay_file, true);
+            auto foundFiles = fs::ScanDirectory(imp_->replay_settings_.replay_dir.c_str(), true);
+            if (foundFiles)
+            {
+                imp_->replay_settings_.replay_file.insert(imp_->replay_settings_.replay_file.end(), foundFiles.value().begin(), foundFiles.value().end());
+            }
         }
     }
 
@@ -948,7 +952,7 @@ bool Coordinator::SetReplayPath(const std::string& path) {
 }
 
 bool Coordinator::LoadReplayList(const std::string& file_path) {
-    if (!DoesFileExist(file_path))
+    if (!fs::DoesFileExist(file_path))
         return false;
 
     imp_->replay_settings_.replay_file.clear();
@@ -968,7 +972,7 @@ bool Coordinator::LoadReplayList(const std::string& file_path) {
 
 void Coordinator::SaveReplayList(const std::string& file_path) {
     std::ofstream replay_file(file_path, std::ofstream::out | std::ofstream::trunc);
-    for (const std::string& line : imp_->replay_settings_.replay_file) {
+    for (const auto& line : imp_->replay_settings_.replay_file) {
         replay_file << line << std::endl;
     }
 }
@@ -990,8 +994,8 @@ void Coordinator::SetFullScreen(bool value) {
      imp_->process_settings_.full_screen = value;
 }
 
-std::string Coordinator::GetExePath() const {
-    if (imp_->process_settings_.process_path.length() > 4)
+std::filesystem::path Coordinator::GetExePath() const {
+    if (imp_->process_settings_.process_path.string().length() > 4)
         return imp_->process_settings_.process_path;
 
     return imp_->process_settings_.process_path;

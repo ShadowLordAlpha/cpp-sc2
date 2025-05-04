@@ -8,7 +8,7 @@
 #include <spdlog/spdlog.h>
 
 #include "s2clientprotocol/sc2api.pb.h"
-#include "sc2utils/sc2_manage_process.h"
+#include "sc2utils/platform.h"
 
 namespace sc2
 {

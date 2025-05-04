@@ -1,7 +1,7 @@
 #include "sc2api/sc2_api.h"
 #include "sc2lib/sc2_lib.h"
 
-#include "sc2utils/sc2_manage_process.h"
+#include "sc2utils/platform.h"
 
 // A helper bot that actually just moves a random unit every 5 seconds
 // timing is controlled in Main, with the SleepFor function

@@ -123,6 +123,10 @@ namespace sc2
         {
             return iterator->second;
         }
+        else if constexpr (std::is_constructible_v<T, std::string>)
+        {
+            return T(iterator->second);
+        }
         else
         {
             std::istringstream iss(iterator->second);

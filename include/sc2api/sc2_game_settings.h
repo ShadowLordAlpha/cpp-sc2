@@ -5,18 +5,20 @@
 #include <string>
 #include <vector>
 
+#include "sc2utils/platform.h"
+
 namespace sc2 {
 
 //! Information about a running process.
 struct ProcessInfo {
     ProcessInfo() = default;
-    ProcessInfo(const std::string& path, uint64_t id, int port) :
+    ProcessInfo(const std::filesystem::path& path, const Process& process, int port) :
         process_path(path),
-        process_id(id),
+        process(process),
         port(port) {};
 
-    std::string process_path;
-    uint64_t process_id;
+    std::filesystem::path process_path;
+    Process process;
     int port;
 };
 
@@ -34,7 +36,7 @@ struct ProcessSettings {
 
     bool realtime;
     int step_size;
-    std::string process_path;
+    std::filesystem::path process_path;
     std::string data_version;
     std::string net_address;
     int timeout_ms;
@@ -106,7 +108,7 @@ struct ReplaySettings {
     ReplaySettings();
 
     // Fill with replays to analyze.
-    std::vector<std::string> replay_file;
+    std::vector<std::filesystem::path> replay_file;
     std::string replay_dir;
     uint32_t player_id;
 };

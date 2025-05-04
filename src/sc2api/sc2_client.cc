@@ -6,8 +6,11 @@
 #include "sc2api/sc2_proto_to_pods.h"
 #include "sc2api/sc2_game_settings.h"
 
-#include "sc2utils/sc2_manage_process.h"
+#include "sc2utils/platform.h"
 
+#include <iostream>
+#include <limits>
+#include <cstdint>
 #include <algorithm>
 #include <iostream>
 #include <unordered_map>
@@ -1399,7 +1402,7 @@ public:
 
     GameResponsePtr WaitForResponse() override;
     void SetProcessInfo(const ProcessInfo& pi) override;
-    const ProcessInfo& GetProcessInfo() const override;
+    ProcessInfo& GetProcessInfo() override;
 
     // Game status.
     SC2APIProtocol::Status GetLastStatus() const override;
@@ -1543,28 +1546,28 @@ bool ControlImp::RemoteSaveMap(const void* data, int data_size, std::string remo
 
 void ControlImp::ResolveMap (const std::string& map_name, SC2APIProtocol::RequestCreateGame* request) {
     // BattleNet map
-    if (!HasExtension(map_name, ".SC2Map")) {
+    if (!fs::HasExtension(map_name, ".SC2Map")) {
         request->set_battlenet_map_name(map_name);
         return;
     }
 
     // Absolute path
     SC2APIProtocol::LocalMap* local_map = request->mutable_local_map();
-    if (DoesFileExist(map_name)) {
+    if (fs::DoesFileExist(map_name)) {
         local_map->set_map_path(map_name);
         return;
     }
 
     // Relative path - Game maps directory
-    std::string game_relative = GetGameMapsDirectory(pi_.process_path) + map_name;
-    if (DoesFileExist(game_relative)) {
+    auto game_relative = fs::GetGameMapsDirectory(pi_.process_path) / map_name;
+    if (fs::DoesFileExist(game_relative)) {
         local_map->set_map_path(map_name);
         return;
     }
 
     // Relative path - Library maps directory
-    std::string library_relative = GetLibraryMapsDirectory() + map_name;
-    if (DoesFileExist(library_relative)) {
+    std::string library_relative = fs::GetLibraryMapsDirectory() + map_name;
+    if (fs::DoesFileExist(library_relative)) {
         local_map->set_map_path(library_relative);
         return;
     }
@@ -1836,8 +1839,8 @@ GameResponsePtr ControlImp::WaitForResponse() {
 
     // Step 1: distinguish between a hang and a crash. Lots of time has elapsed, so if there was a crash
     // it should have finished by now.
-    assert(pi_.process_id);
-    if (!IsProcessRunning(pi_.process_id)) {
+    assert(pi_.process.getProcessId());
+    if (pi_.process.isRunning()) {
         app_state_ = AppState::crashed;
         std::cout << "Game application has terminated unexpectedly." << std::endl;
         Error(ClientError::SC2AppFailure);
@@ -1876,12 +1879,12 @@ GameResponsePtr ControlImp::WaitForResponse() {
 
     // The game application has hanged. Try and terminate it.
     app_state_ = AppState::timeout;
-    for (int i = 0; i < 10 && IsProcessRunning(pi_.process_id); ++i) {
-        TerminateProcess(pi_.process_id);
+    for (int i = 0; i < 10 && pi_.process.isRunning(); ++i) {
+        pi_.process.terminate();
         SleepFor(2000);
     }
 
-    if (IsProcessRunning(pi_.process_id)) {
+    if (pi_.process.isRunning()) {
         // Failed to kill the running process.
         app_state_ = AppState::timeout_zombie;
     }
@@ -1895,7 +1898,7 @@ void ControlImp::SetProcessInfo(const ProcessInfo& pi) {
     pi_ = pi;
 }
 
-const ProcessInfo& ControlImp::GetProcessInfo() const {
+ProcessInfo& ControlImp::GetProcessInfo() {
     return pi_;
 }
 

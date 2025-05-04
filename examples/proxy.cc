@@ -5,7 +5,7 @@
 #include "sc2api/sc2_connection.h"
 #include "sc2api/sc2_args.h"
 
-#include "sc2utils/sc2_manage_process.h"
+#include "sc2utils/platform.h"
 #include "s2clientprotocol/sc2api.pb.h"
 
 #include <iostream>
@@ -19,7 +19,8 @@ int main(int argc, char* argv[]) {
     sc2::ProcessSettings process_settings;
     sc2::GameSettings game_settings;
     sc2::ParseSettings(argc, argv, process_settings, game_settings);
-    sc2::StartProcess(process_settings.process_path,
+    auto process = sc2::Process();
+    process.start(process_settings.process_path,
         { "-listen", "127.0.0.1",
           "-port", "5679",
           "-displayMode", "0",

@@ -38,7 +38,7 @@ public:
     // General.
     virtual GameResponsePtr WaitForResponse() = 0;
     virtual void SetProcessInfo(const ProcessInfo& pi) = 0;
-    virtual const ProcessInfo& GetProcessInfo() const = 0;
+    virtual ProcessInfo& GetProcessInfo() = 0;
 
     virtual AppState GetAppState() const = 0;
 

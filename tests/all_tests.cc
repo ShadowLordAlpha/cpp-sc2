@@ -10,7 +10,7 @@
 #include "test_performance.h"
 #include "test_observation_interface.h"
 #include "test_actions.h"
-#include "sc2utils/sc2_manage_process.h"
+#include "sc2utils/platform.h"
 
 #include <iostream>
 #include <string>
@@ -57,11 +57,12 @@ int main(int argc, char* argv[]) {
     else
         std::cerr << "Some tests failed!" << std::endl;
 
-    if (sc2::IsInDebugger()) {
-        // When debugging, this prevents the console from disappearing before it can be read.
-        std::cout << "Hit any key to exit..." << std::endl;
-        while (!sc2::PollKeyPress());
-    }
+#ifndef NDEBUG
+    // When debugging, this prevents the console from disappearing before it can be read.
+    std::cout << "Hit any key to exit..." << std::endl;
+    while (!sc2::PollKeyPress());
+#endif
+
 
     return success ? 0 : -1;
 }
