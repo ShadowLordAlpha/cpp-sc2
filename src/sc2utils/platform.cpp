@@ -40,8 +40,6 @@
 #include <mach-o/dyld.h>
 #include <ctype.h>
 
-#include <Carbon/Carbon.h>
-
 #elif defined(__linux__)
 
 // Linux headers for process manipulation.
@@ -94,107 +92,11 @@ namespace sc2::fs
 
         return result;
     }
-
-//     std::string GetGameDataDirectory()
-//     {
-// #if defined(_WIN32)
-//         unsigned int csidl = CSIDL_PERSONAL;
-//         WCHAR windowsPath[MAX_PATH];
-//
-//         HRESULT result = SHGetFolderPathW(nullptr, csidl, nullptr, SHGFP_TYPE_CURRENT, windowsPath);
-//
-//         if (result == S_OK)
-//         {
-//             std::wstring_convert<std::codecvt_utf8_utf16<WCHAR>, WCHAR> convertor;
-//             return convertor.to_bytes(windowsPath);
-//         }
-//
-//         return std::string();
-// #endif
-//     }
 }
 
 
 namespace sc2
 {
-#ifdef _WIN32
-
-    static std::string GetExePath()
-    {
-        WCHAR windowsPath[MAX_PATH];
-
-        DWORD length = GetModuleFileNameW(0, windowsPath, MAX_PATH);
-        if (length > 0)
-        {
-            std::wstring_convert<std::codecvt_utf8_utf16<WCHAR>, WCHAR> convertor;
-            return convertor.to_bytes(windowsPath);
-        }
-
-        return std::string();
-    }
-
-
-
-
-
-#elif defined(__linux__) || defined(__APPLE__)
-
-
-
-
-
-#if defined(__linux__)
-std::string GetUserDirectory() {
-    const char* home_directory = getenv("HOME");
-    if (!home_directory)
-        home_directory = getpwuid(getuid())->pw_dir;
-    return std::string(home_directory);
-}
-#else
-
-void GetDirectory(std::string& path, uint32_t folderType, short domain) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-
-    FSRef fsref;
-    OSErr err = FSFindFolder(domain, folderType, false, &fsref);
-
-    if (err == noErr) {
-        char pathBuffer[PATH_MAX];
-        FSRefMakePath(&fsref, reinterpret_cast<unsigned char*>(pathBuffer), PATH_MAX);
-        path = pathBuffer;
-    }
-
-#pragma clang diagnostic pop
-}
-
-std::string GetUserDirectory() {
-    std::string result;
-    GetDirectory(result, kApplicationSupportFolderType, kUserDomain);
-    result += "/Blizzard";
-    return result;
-}
-#endif
-
-static std::string GetExePath() {
-#if defined(__linux__)
-    char path[PATH_MAX + 1] = { 0 };
-    if (readlink("/proc/self/exe", path, PATH_MAX) == -1)
-        return std::string();
-
-    return std::string(path);
-#else
-    char path[PATH_MAX];
-    uint32_t size = sizeof(path);
-    if (_NSGetExecutablePath(path, &size) != 0)
-        return std::string();
-
-    return std::string(path);
-#endif
-}
-
-#endif
-
     void SleepFor(unsigned int ms)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(ms));
@@ -222,11 +124,5 @@ static std::string GetExePath() {
         return bytesWaiting > 0;
 #endif
     }
-
-
-
-
-
-
 
 }

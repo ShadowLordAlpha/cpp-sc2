@@ -1,6 +1,8 @@
 #include "sc2api/sc2_api.h"
 #include "sc2utils/sc2_utils.h"
 
+#include <cstdlib>
+
 #if defined(_WIN32)
     #include <windows.h>
     #include <shlobj.h>      // For SHGetKnownFolderPath
@@ -284,6 +286,11 @@ namespace sc2
             CoTaskMemFree(path_tmp);
             return result;
         }
+#else
+        std::string result = std::getenv("HOME");
+        result += "/Blizzard";
+        if (result)
+            return std::filesystem::path(result);
 #endif
 
         return std::filesystem::current_path();
