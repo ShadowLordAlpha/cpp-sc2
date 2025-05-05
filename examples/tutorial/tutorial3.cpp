@@ -90,7 +90,7 @@ private:
         float rx = GetRandomScalar();
         float ry = GetRandomScalar();
 
-        if (!unit_to_build)
+        if (unit_to_build != nullptr)
         {
             Actions()->UnitCommand(unit_to_build, ability_type_for_structure,
                                Point2D(unit_to_build->pos.x + rx * 15.0f, unit_to_build->pos.y + ry * 15.0f));

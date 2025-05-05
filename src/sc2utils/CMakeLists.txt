@@ -14,3 +14,13 @@ endif()
 
 target_include_directories(sc2utils PRIVATE "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(sc2utils PUBLIC spdlog::spdlog sc2api)
+
+find_package(spdlog CONFIG QUIET)
+
+if (spdlog_FOUND)
+    message(VERBOSE "spdlog found, enabling")
+    target_link_libraries(sc2utils PRIVATE spdlog::spdlog)
+    target_compile_definitions(sc2utils PRIVATE USE_SPDLOG)
+else ()
+    message(VERBOSE "spdlog not found, default to standard io")
+endif()

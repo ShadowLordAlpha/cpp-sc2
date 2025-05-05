@@ -667,12 +667,10 @@ bool CoordinatorImp::Relaunch(ReplayObserver* replay_observer) {
 // Coordinator.
 
 Coordinator::Coordinator() {
-    imp_ = new CoordinatorImp();
+    imp_ = std::make_unique<CoordinatorImp>();
 }
 
-Coordinator::~Coordinator() {
-    delete imp_;
-}
+Coordinator::~Coordinator() = default;
 
 bool Coordinator::StartGame(const std::string& map_path) {
     if (!map_path.empty())
