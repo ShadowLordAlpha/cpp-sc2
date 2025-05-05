@@ -201,7 +201,7 @@ public:
     bool RemoteSaveMap(const void* data, int data_size, std::string remote_path);
     //! Gets the game executable path.
     //!< \return The game executable path.
-    std::string GetExePath() const;
+    std::filesystem::path GetExePath() const;
 
 private:
     CoordinatorImp* imp_;

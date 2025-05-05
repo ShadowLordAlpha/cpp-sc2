@@ -1,10 +1,12 @@
 #include "test_movement_combat.h"
 #include "sc2api/sc2_api.h"
-#include "sc2utils/sc2_manage_process.h"
+#include "sc2utils/platform.h"
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <random>
+
+#include "sc2utils/sc2_utils.h"
 
 namespace sc2 {
 
@@ -36,7 +38,7 @@ void MultiplayerTestBot::OnTestsEnd() {
 }
 
 bool RemoteSaveMap(sc2::Coordinator& coordinator, std::string source_map, std::string remote_path) {
-    source_map = GetLibraryMapsDirectory() + source_map;
+    source_map =( GetLibraryMapsDirectory() / source_map).string();
     std::string buffer;
     std::ifstream inStream(source_map, std::ios::binary);
     inStream.seekg(0, std::ios_base::end);

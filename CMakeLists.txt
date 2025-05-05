@@ -20,11 +20,6 @@ set(CMAKE_DEBUG_POSTFIX "d")
 
 message(STATUS "Target SC2 version: ${SC2_VERSION}")
 
-include(FetchContent)
-
-# External subprojects
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/thirdparty/cmake")
-
 # Allow creating filters for projects in visual studio.
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -47,9 +42,6 @@ endif ()
 if (BUILD_API_TESTS)
     add_subdirectory(tests)
 endif ()
-
-# External subproject dependencies
-include(sc2protocol)
 
 # cpp-sc2 libraries
 add_subdirectory(src)

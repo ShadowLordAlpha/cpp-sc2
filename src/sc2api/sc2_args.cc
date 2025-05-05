@@ -1,11 +1,13 @@
 #include "sc2api/sc2_args.h"
 
 #include "sc2utils/arg_parser.h"
-#include "sc2utils/sc2_manage_process.h"
+#include "sc2utils/sc2_utils.h"
+#include "sc2utils/platform.h"
 
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
+#include <filesystem>
 
 namespace sc2 {
 
@@ -27,7 +29,7 @@ bool ParseFromFile(ProcessSettings& process_settings, GameSettings& game_setting
         return false;
     }
 
-    process_settings.process_path = reader.get<std::string>("executable").value();
+    process_settings.process_path = reader.get<std::filesystem::path>("executable").value();
     process_settings.realtime = reader.get<bool>("realtime").value_or(process_settings.realtime);
 
     process_settings.port_start = reader.get<int>("port").value_or(process_settings.port_start);
@@ -44,7 +46,7 @@ bool ParseFromFile(ProcessSettings& process_settings, GameSettings& game_setting
 #endif
 
 std::string ParseExecuteInfo(ProcessSettings& process_settings, GameSettings& game_settings) {
-    std::string execute_info_filepath = GetUserDirectory();
+    auto execute_info_filepath = GetGameDataDirectory();
     if (execute_info_filepath.empty())
         return "Failed to determine path to the user's directory";
 
@@ -53,11 +55,11 @@ std::string ParseExecuteInfo(ProcessSettings& process_settings, GameSettings& ga
     execute_info_filepath += kDirectoryDivider;
     execute_info_filepath += StarCraft2ExecuteInfo;
 
-    if (!ParseFromFile(process_settings, game_settings, execute_info_filepath))
-        return "Failed to parse " + execute_info_filepath;
+    if (!ParseFromFile(process_settings, game_settings, execute_info_filepath.string()))
+        return "Failed to parse " + execute_info_filepath.string();
 
-    if (!FindLatestExe(process_settings.process_path))
-        return "Failed to find latest StarCraft II executable in " + process_settings.process_path;
+    if (!FindLatestSC2Exe(process_settings.process_path))
+        return "Failed to find latest StarCraft II executable in " + process_settings.process_path.string();
 
     return std::string();
 }
@@ -92,8 +94,8 @@ bool ParseSettings(int argc, char* argv[], ProcessSettings& process_settings, Ga
     if (!arg_parser.parse(argc, argv))
         return false;
 
-    process_settings.process_path = arg_parser.get<std::string>("executable").value_or(process_settings.process_path);
-    if (process_settings.process_path.length() < 2) {
+    process_settings.process_path = arg_parser.get<std::filesystem::path>("executable").value_or(process_settings.process_path);
+    if (process_settings.process_path.string().size() < 2) {
         std::cerr << "Path to StarCraft II executable is not specified.\n";
 
         if (!parse_error.empty())
