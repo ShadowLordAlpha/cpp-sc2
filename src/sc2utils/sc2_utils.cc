@@ -289,7 +289,7 @@ namespace sc2
 #else
         std::string result = std::getenv("HOME");
         result += "/Blizzard";
-        if (result)
+        if (!result.empty())
             return std::filesystem::path(result);
 #endif
 
