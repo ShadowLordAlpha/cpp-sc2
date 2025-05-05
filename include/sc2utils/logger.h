@@ -1,3 +1,24 @@
+/**
+ * @file logger.h
+ * @brief Logging utilities for the CPPSC2 project.
+ *
+ * Supports two backends:
+ *   - SPDLog us USE_SPDLOG (if spdlog_FOUND is set in CMake, this happens automatically)
+ *   - Minimal fallback logger using std::format and streams
+ *
+ * Log levels can be configured at compile time with SC2_ACTIVE_LOG_LEVEL.
+ *
+ * Example usage:
+ *   SC2_LOG_INFO("Hello {}", name);
+ *
+ * To change log level globally (for both the macros and SPDLog):
+ *   #define SC2_ACTIVE_LOG_LEVEL SC2_LOG_LEVEL_DEBUG
+ *   // before including logger.h
+ *
+ * To use SPDLog as the backend, define USE_SPDLOG and add SPDLog to your dependencies.
+ *
+ * Thread-safe and reentrant (for SPDLog backend).
+ */
 #pragma once
 
 #ifdef USE_SPDLOG
