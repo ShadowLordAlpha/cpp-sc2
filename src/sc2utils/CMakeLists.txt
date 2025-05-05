@@ -8,10 +8,8 @@ add_library(sc2utils STATIC ${sc2utils_sources})
 
 if(WIN32)
     target_sources(sc2utils PRIVATE process_windows.cpp)
-elseif(UNIX)
-    target_sources(sc2utils PRIVATE process_posix.cpp)
 else()
-    message(FATAL_ERROR "No process implementation for this platform!")
+    target_sources(sc2utils PRIVATE process_posix.cpp)
 endif()
 
 target_include_directories(sc2utils PRIVATE "${PROJECT_SOURCE_DIR}/include")
