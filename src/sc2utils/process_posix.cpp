@@ -13,6 +13,7 @@
 #include <filesystem>
 #include <iostream>
 
+extern char **environ;
 
 namespace sc2
 {
