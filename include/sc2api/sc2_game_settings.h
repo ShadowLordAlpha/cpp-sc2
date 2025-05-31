@@ -6,7 +6,6 @@
 #include <vector>
 #include <memory>
 
-#include "sc2utils/platform.h"
 #include "sc2utils/process.h"
 
 namespace sc2 {
@@ -87,18 +86,14 @@ struct FeatureLayerSettings {
 
 //! Settings for rendered feature layer output.
 struct InterfaceSettings {
-    InterfaceSettings();
-
-    bool use_feature_layers;
+    bool use_feature_layers = false;
     FeatureLayerSettings feature_layer_settings;
-    bool use_render;
+    bool use_render = false;
     RenderSettings render_settings;
 };
 
 //! Settings for starting a game.
 struct GameSettings {
-    GameSettings();
-
     std::string map_name;
     std::vector<PlayerSetup> player_setup;
     Ports ports;
@@ -107,12 +102,10 @@ struct GameSettings {
 
 //! Settings for starting a replay.
 struct ReplaySettings {
-    ReplaySettings();
-
     // Fill with replays to analyze.
     std::vector<std::filesystem::path> replay_file;
     std::string replay_dir;
-    uint32_t player_id;
+    uint32_t player_id = 1;
 };
 
 //! Game status.

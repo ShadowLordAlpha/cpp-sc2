@@ -1,6 +1,7 @@
 set(sc2utils_sources
         sc2_utils.cc
         arg_parser.cpp
+        process.cpp
         platform.cpp
 )
 

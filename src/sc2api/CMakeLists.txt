@@ -7,7 +7,6 @@ file(WRITE "${PROJECT_SOURCE_DIR}/include/sc2api/sc2_typeenums.h"
 )
 
 set(sc2api_sources
-    sc2_action.cc
     sc2_agent.cc
     sc2_args.cc
     sc2_client.cc

@@ -109,7 +109,7 @@ namespace sc2::logger
     {
         try {
             auto message = std::vformat(fmt, std::make_format_args(args...));
-            stream << "[ " << teal() << currentTimeString() << resetColor() << " ] [ " << levelColor(level) << level << resetColor() << " ] " << message << '\n';
+            stream << "[" << teal() << currentTimeString() << resetColor() << "] [" << levelColor(level) << level << resetColor() << "] " << message << '\n';
         } catch (const std::format_error& e) {
             stream << "[LOGGING ERROR] format error: " << e.what() << " [level: " << level << ", format: " << fmt << "]\n";
         }

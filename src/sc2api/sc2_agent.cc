@@ -175,8 +175,8 @@ void ActionImp::UnitCommand(Tag tag, AbilityID ability, const Point2D& point, bo
 
     tag_command->set_ability_id(ability);
     SC2APIProtocol::Point2D* target_point = tag_command->mutable_target_world_space_pos();
-    target_point->set_x(point.x);
-    target_point->set_y(point.y);
+    target_point->set_x(point.x());
+    target_point->set_y(point.y());
     tag_command->set_queue_command(queued_command);
     tag_command->add_unit_tags(tag);
 }
@@ -214,8 +214,8 @@ void ActionImp::UnitCommand(const Tags& tags, AbilityID ability, const Point2D& 
 
     tag_command->set_ability_id(ability);
     SC2APIProtocol::Point2D* target_point = tag_command->mutable_target_world_space_pos();
-    target_point->set_x(point.x);
-    target_point->set_y(point.y);
+    target_point->set_x(point.x());
+    target_point->set_y(point.y());
     tag_command->set_queue_command(queued_command);
 
     for (auto tag : tags)
@@ -306,8 +306,8 @@ void ActionFeatureLayerImp::UnitCommand(AbilityID ability, const Point2DI& point
     else {
         pt = unit_command->mutable_target_screen_coord();
     }
-    pt->set_x(point.x);
-    pt->set_y(point.y);
+    pt->set_x(point.x());
+    pt->set_y(point.y());
     unit_command->set_ability_id(ability);
 }
 
@@ -318,8 +318,8 @@ void ActionFeatureLayerImp::CameraMove(const Point2DI& center) {
     SC2APIProtocol::ActionSpatialCameraMove* camera_move = action_feature_layer->mutable_camera_move();
 
     SC2APIProtocol::PointI* center_proto = camera_move->mutable_center_minimap();
-    center_proto->set_x(center.x);
-    center_proto->set_y(center.y);
+    center_proto->set_x(center.x());
+    center_proto->set_y(center.y());
 }
 
 void ActionFeatureLayerImp::Select(const Point2DI& center, PointSelectionType selection_type) {
@@ -329,8 +329,8 @@ void ActionFeatureLayerImp::Select(const Point2DI& center, PointSelectionType se
     SC2APIProtocol::ActionSpatialUnitSelectionPoint* select_pt = action_feature_layer->mutable_unit_selection_point();
 
     SC2APIProtocol::PointI* center_proto = select_pt->mutable_selection_screen_coord();
-    center_proto->set_x(center.x);
-    center_proto->set_y(center.y);
+    center_proto->set_x(center.x());
+    center_proto->set_y(center.y());
     select_pt->set_type(static_cast<SC2APIProtocol::ActionSpatialUnitSelectionPoint_Type>(selection_type));
 }
 
@@ -341,11 +341,11 @@ void ActionFeatureLayerImp::Select(const Point2DI& p0, const Point2DI& p1, bool 
     SC2APIProtocol::ActionSpatialUnitSelectionRect* select_rect = action_feature_layer->mutable_unit_selection_rect();
     SC2APIProtocol::RectangleI* selection_screen_coord = select_rect->add_selection_screen_coord();
     SC2APIProtocol::PointI* selection_p0 = selection_screen_coord->mutable_p0();
-    selection_p0->set_x(p0.x);
-    selection_p0->set_y(p0.y);
+    selection_p0->set_x(p0.x());
+    selection_p0->set_y(p0.y());
     SC2APIProtocol::PointI* selection_p1 = selection_screen_coord->mutable_p1();
-    selection_p1->set_x(p1.x);
-    selection_p1->set_y(p1.y);
+    selection_p1->set_x(p1.x());
+    selection_p1->set_y(p1.y());
 }
 
 //-------------------------------------------------------------------------------------------------

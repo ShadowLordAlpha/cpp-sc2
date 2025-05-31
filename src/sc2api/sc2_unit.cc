@@ -7,9 +7,6 @@
 
 namespace sc2 {
 
-Unit::Unit() {
-}
-
 bool Unit::IsBuildFinished() const {
     return build_progress >= 1.0f;
 }

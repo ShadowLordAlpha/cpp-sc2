@@ -10,4 +10,3 @@
 #include "sc2_replay_observer.h"
 #include "sc2_typeenums.h"
 #include "sc2_unit.h"
-
