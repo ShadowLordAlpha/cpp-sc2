@@ -72,7 +72,7 @@ private:
         float ry = GetRandomScalar();
 
         Actions()->UnitCommand(unit_to_build, ability_type_for_structure,
-            Point2D(unit_to_build->pos.x + rx * 15.0f, unit_to_build->pos.y + ry * 15.0f));
+            Point2D(unit_to_build->pos.x() + rx * 15.0f, unit_to_build->pos.y() + ry * 15.0f));
 
         return true;
     }
@@ -98,7 +98,7 @@ private:
         {
             if (u->unit_type == UNIT_TYPEID::NEUTRAL_MINERALFIELD)
             {
-                float d = DistanceSquared2D(u->pos, start);
+                float d = distanceSquared(u->pos, start);
                 if (d < distance)
                 {
                     distance = d;

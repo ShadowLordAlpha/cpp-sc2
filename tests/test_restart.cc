@@ -46,8 +46,8 @@ public:
 
         Point2D friendly_rally_pt = FindRandomLocation(game_info_);
         Point2D enemy_rally_pt = FindRandomLocation(game_info_);
-        battle_pt_.x = (friendly_rally_pt.x + enemy_rally_pt.x) / 2.0f;
-        battle_pt_.y = (friendly_rally_pt.y + enemy_rally_pt.y) / 2.0f;
+        battle_pt_[POS_X] = (friendly_rally_pt.x() + enemy_rally_pt.x()) / 2.0f;
+        battle_pt_[POS_Y] = (friendly_rally_pt.y() + enemy_rally_pt.y()) / 2.0f;
 
         Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, friendly_rally_pt, Observation()->GetPlayerID(), 20);
         Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, enemy_rally_pt, Observation()->GetPlayerID() + 1, 20);
