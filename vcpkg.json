@@ -3,9 +3,6 @@
   "version-string" : "2.0.0",
   "builtin-baseline" : "96d5fb3de135b86d7222c53f2352ca92827a156b",
   "dependencies" : [ {
-    "name" : "sdl2",
-    "version>=" : "2.32.4"
-  }, {
     "name" : "protobuf",
     "version>=" : "5.29.3"
   }, {
@@ -18,5 +15,8 @@
   }, {
     "name" : "spdlog",
     "version>=" : "1.15.2"
+  }, {
+    "name" : "sdl3",
+    "version>=" : "3.2.12"
   } ]
 }

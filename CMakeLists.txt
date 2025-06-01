@@ -11,6 +11,14 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.24)
     cmake_policy(SET CMP0135 NEW)
 endif ()
 
+# Global compiler warnings
+if(MSVC)
+    add_compile_options(/W4)
+else()
+    add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+
 # User Options
 option(BUILD_SC2_RENDERER "Build SC2 Renderer library" ON)
 option(BUILD_API_EXAMPLES "Build Examples" ON)
@@ -22,16 +30,6 @@ message(STATUS "Target SC2 version: ${SC2_VERSION}")
 
 # Allow creating filters for projects in visual studio.
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
-# [Optional] MSVC-specific options (not currently needed with vcpkg/toolchain)
-#if (MSVC)
-    # Setup MSVC parallelized builds
-#    add_compile_options(/MP)
-#    add_compile_options(/MDd) # There is a really dumb assert that happens when not using this
-
-    # Use statically linked runtime
-#    set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>)
-#endif ()
 
 if (BUILD_API_EXAMPLES)
     add_subdirectory(examples)
