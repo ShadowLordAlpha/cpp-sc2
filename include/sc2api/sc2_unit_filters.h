@@ -33,7 +33,7 @@
 namespace sc2
 {
 
-// Basic Type Filters
+    // Basic Type Filters
     // Simple functions for common filtering needs
 
     /**
