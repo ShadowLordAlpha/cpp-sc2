@@ -10,7 +10,6 @@ set(sc2api_sources
     sc2_agent.cc
     sc2_args.cc
     sc2_client.cc
-    sc2_common.cc
     sc2_connection.cc
     sc2_coordinator.cc
     sc2_data.cc
