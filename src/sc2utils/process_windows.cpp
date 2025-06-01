@@ -1,4 +1,4 @@
-#include "sc2utils/process.h"
+#include "sc2utils/Process.h"
 
 #include <vector>
 #include <string>

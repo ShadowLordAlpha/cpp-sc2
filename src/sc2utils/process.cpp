@@ -1,4 +1,4 @@
-#include "sc2utils/process.h"
+#include "sc2utils/Process.h"
 
 namespace sc2
 {
