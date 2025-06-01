@@ -295,7 +295,7 @@ bool Convert(const ObservationRawPtr& observation_raw, UnitPool& unit_pool, uint
         unit->armor_upgrade_level = observation_unit.armor_upgrade_level();
         unit->shield_upgrade_level = observation_unit.shield_upgrade_level();
 
-        unit->is_building = IsBuilding()(unit->unit_type);
+        unit->is_building = isBuilding(unit->unit_type);
     }
 
     return true;

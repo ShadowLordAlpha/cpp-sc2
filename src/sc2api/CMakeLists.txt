@@ -20,7 +20,6 @@ set(sc2api_sources
     sc2_replay_observer.cc
     sc2_score.cc
     sc2_server.cc
-    sc2_unit_filters.cc
     sc2_unit.cc
     "typeids/sc2_${SC2_VERSION}_typeenums.cpp")
 

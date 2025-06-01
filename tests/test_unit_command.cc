@@ -213,13 +213,13 @@ namespace sc2 {
         void OnTestFinish() override {
             const ObservationInterface* obs = agent_->Observation();
 
-            Units barracks_units = obs->GetUnits(Unit::Self, IsUnit(UNIT_TYPEID::TERRAN_BARRACKS));
+            Units barracks_units = obs->GetUnits(Unit::Self, isUnit(UNIT_TYPEID::TERRAN_BARRACKS));
             if (barracks_units.size() != 1) {
                 ReportError("Could not find landed barracks.");
             }
 
             // Find the tech lab.
-            Units techlab_units = obs->GetUnits(Unit::Self, IsUnit(UNIT_TYPEID::TERRAN_BARRACKSTECHLAB));
+            Units techlab_units = obs->GetUnits(Unit::Self, isUnit(UNIT_TYPEID::TERRAN_BARRACKSTECHLAB));
             if (techlab_units.size() != 1) {
                 ReportError("Could not find a tech lab.");
             }
@@ -255,13 +255,13 @@ namespace sc2 {
             const ObservationInterface* obs = agent_->Observation();
 
             // Barracks will have landed. Find it.
-            Units barracks_units = obs->GetUnits(Unit::Self, IsUnit(UNIT_TYPEID::TERRAN_BARRACKS));
+            Units barracks_units = obs->GetUnits(Unit::Self, isUnit(UNIT_TYPEID::TERRAN_BARRACKS));
             if (barracks_units.size() != 1) {
                 ReportError("Could not find landed barracks.");
             }
 
             // Find the tech lab.
-            Units techlab_units = obs->GetUnits(Unit::Self, IsUnit(UNIT_TYPEID::TERRAN_BARRACKSTECHLAB));
+            Units techlab_units = obs->GetUnits(Unit::Self, isUnit(UNIT_TYPEID::TERRAN_BARRACKSTECHLAB));
             if (techlab_units.size() != 1) {
                 ReportError("Could not find a tech lab.");
             }
@@ -298,13 +298,13 @@ namespace sc2 {
             Units units = obs->GetUnits();
 
             // Barracks will have landed. Find it.
-            Units barracks_units = obs->GetUnits(Unit::Self, IsUnit(UNIT_TYPEID::TERRAN_BARRACKS));
+            Units barracks_units = obs->GetUnits(Unit::Self, isUnit(UNIT_TYPEID::TERRAN_BARRACKS));
             if (barracks_units.size() != 1) {
                 ReportError("Could not find landed barracks.");
             }
 
             // Find the tech lab.
-            Units techlab_units = obs->GetUnits(Unit::Self, IsUnit(UNIT_TYPEID::TERRAN_BARRACKSTECHLAB));
+            Units techlab_units = obs->GetUnits(Unit::Self, isUnit(UNIT_TYPEID::TERRAN_BARRACKSTECHLAB));
             if (techlab_units.size() != 1) {
                 ReportError("Could not find a tech lab.");
             }
@@ -978,7 +978,7 @@ namespace sc2 {
 
             // Ensure the vespene geyser has gas.
             {
-                Units geysers = obs->GetUnits(Unit::Alliance::Neutral, IsUnit(UNIT_TYPEID::NEUTRAL_VESPENEGEYSER));
+                Units geysers = obs->GetUnits(Unit::Alliance::Neutral, isUnit(UNIT_TYPEID::NEUTRAL_VESPENEGEYSER));
                 if (geysers.size() < 1) {
                     ReportError("Could not find any geysers.");
                 }

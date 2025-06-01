@@ -60,7 +60,7 @@ public:
 private:
     size_t CountUnitType(UNIT_TYPEID unit_type)
     {
-        return Observation()->GetUnits(Unit::Alliance::Self, IsUnit(unit_type)).size();
+        return Observation()->GetUnits(Unit::Alliance::Self, isUnit(unit_type)).size();
     }
 
     bool TryBuildStructure(ABILITY_ID ability_type_for_structure, UNIT_TYPEID unit_type = UNIT_TYPEID::TERRAN_SCV)

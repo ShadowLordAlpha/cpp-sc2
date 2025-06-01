@@ -220,7 +220,7 @@ struct TestGetCloakedEnemyUnit: TestSequence {
         const ObservationInterface* obs = agent_->Observation();
 
         Units found_dark_templars = obs->GetUnits(
-            Unit::Alliance::Enemy, IsUnit(UNIT_TYPEID::PROTOSS_DARKTEMPLAR));
+            Unit::Alliance::Enemy, isUnit(UNIT_TYPEID::PROTOSS_DARKTEMPLAR));
 
         if (found_dark_templars.size() != 10) {
             ReportErrorAndCleanup("Dark Templars Count is Incorrect");
@@ -256,7 +256,7 @@ struct TestUnitUpgradesLevel: TestSequence {
         const ObservationInterface* obs = agent_->Observation();
 
         Units found_zealots = obs->GetUnits(
-            Unit::Alliance::Self, IsUnit(UNIT_TYPEID::PROTOSS_ZEALOT));
+            Unit::Alliance::Self, isUnit(UNIT_TYPEID::PROTOSS_ZEALOT));
 
         if (found_zealots.size() != 1) {
             ReportErrorAndCleanup("Zealots Count is Incorrect");
@@ -305,7 +305,7 @@ struct TestUnitHallucinationAttribute: TestSequence {
 
         if (!test_unit_) {
             sc2::Units found_sentries = obs->GetUnits(
-                Unit::Alliance::Self, IsUnit(UNIT_TYPEID::PROTOSS_SENTRY));
+                Unit::Alliance::Self, isUnit(UNIT_TYPEID::PROTOSS_SENTRY));
 
             if (found_sentries.empty())
                 return;
@@ -335,7 +335,7 @@ struct TestUnitHallucinationAttribute: TestSequence {
         }
 
         sc2::Units found_phoenixes = obs->GetUnits(
-            Unit::Alliance::Self, IsUnit(UNIT_TYPEID::PROTOSS_PHOENIX));
+            Unit::Alliance::Self, isUnit(UNIT_TYPEID::PROTOSS_PHOENIX));
 
         if (found_phoenixes.size() != 1) {
             ReportErrorAndCleanup("Illusion of phoenix not found");
