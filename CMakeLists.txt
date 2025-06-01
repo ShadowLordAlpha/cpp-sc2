@@ -87,15 +87,19 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(
             -Wall -Wextra -Wpedantic
             -Wconversion -Wsign-conversion
-            $<$<CONFIG:Debug>:-g -O0>
-            $<$<CONFIG:Release>:-O3 -DNDEBUG>
     )
+    add_compile_options($<$<CONFIG:Debug>:-g>)
+    add_compile_options($<$<CONFIG:Debug>:-O0>)
+    add_compile_options($<$<CONFIG:Release>:-O3>)
+    add_compile_options($<$<CONFIG:Release>:-DNDEBUG>)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     add_compile_options(
             /W4 /permissive- /utf-8
-            $<$<CONFIG:Debug>:/Od /Zi>
-            $<$<CONFIG:Release>:/O2 /DNDEBUG>
     )
+    add_compile_options($<$<CONFIG:Debug>:/Od>)
+    add_compile_options($<$<CONFIG:Debug>:/Zi>)
+    add_compile_options($<$<CONFIG:Release>:/O2>)
+    add_compile_options($<$<CONFIG:Release>:/DNDEBUG>)
 endif()
 
 # ==============================================================================
