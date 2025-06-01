@@ -1,7 +1,7 @@
 {
   "name" : "cpp-sc2",
   "version-string" : "2.0.0",
-  "builtin-baseline" : "96d5fb3de135b86d7222c53f2352ca92827a156b",
+  "builtin-baseline" : "ce613c41372b23b1f51333815feb3edd87ef8a8b",
   "dependencies" : [ {
     "name" : "protobuf",
     "version>=" : "5.29.3"
