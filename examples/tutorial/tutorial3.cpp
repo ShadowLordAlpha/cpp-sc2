@@ -60,7 +60,7 @@ public:
 private:
     size_t CountUnitType(UNIT_TYPEID unit_type)
     {
-        return Observation()->GetUnits(Unit::Alliance::Self, IsUnit(unit_type)).size();
+        return Observation()->GetUnits(Unit::Alliance::Self, isUnit(unit_type)).size();
     }
 
     bool TryBuildStructure(ABILITY_ID ability_type_for_structure, UNIT_TYPEID unit_type = UNIT_TYPEID::TERRAN_SCV)
@@ -90,10 +90,10 @@ private:
         float rx = GetRandomScalar();
         float ry = GetRandomScalar();
 
-        if (!unit_to_build)
+        if (unit_to_build != nullptr)
         {
             Actions()->UnitCommand(unit_to_build, ability_type_for_structure,
-                               Point2D(unit_to_build->pos.x + rx * 15.0f, unit_to_build->pos.y + ry * 15.0f));
+                               Point2D(unit_to_build->pos.x() + rx * 15.0f, unit_to_build->pos.y() + ry * 15.0f));
         }
 
         return true;
@@ -120,7 +120,7 @@ private:
         {
             if (u->unit_type == UNIT_TYPEID::NEUTRAL_MINERALFIELD)
             {
-                float d = DistanceSquared2D(u->pos, start);
+                float d = distanceSquared(u->pos, start);
                 if (d < distance)
                 {
                     distance = d;

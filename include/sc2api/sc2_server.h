@@ -12,19 +12,17 @@
 
 #include <ixwebsocket/IXWebSocketServer.h>
 
-namespace SC2APIProtocol
-{
+namespace SC2APIProtocol {
     class Request;
+
     class Response;
 }
 
-namespace sc2
-{
+namespace sc2 {
     using RequestData = std::pair<ix::WebSocket *, SC2APIProtocol::Request *>;
     using ResponseData = std::pair<ix::WebSocket *, SC2APIProtocol::Response *>;
 
-    class Server
-    {
+    class Server {
     public:
         Server() = default;
 

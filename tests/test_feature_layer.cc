@@ -120,18 +120,18 @@ public:
 
         Point2D min = game_info.playable_min;
         Point2D max = game_info.playable_max;
-        min.x += max_spawn_offset;
-        min.y += max_spawn_offset;
-        max.x -= max_spawn_offset;
-        max.y -= max_spawn_offset;
-        if (min.x > max.x || min.y > max.y) {
+        min[POS_X] += max_spawn_offset;
+        min[POS_Y] += max_spawn_offset;
+        max[POS_X] -= max_spawn_offset;
+        max[POS_Y] -= max_spawn_offset;
+        if (min.x() > max.x() || min.y() > max.y()) {
             ReportError("Map is too small to run test");
             return;
         }
 
         Point2D camera_pt_= FindRandomLocation(min, max);
-        spawn_pt_.x = camera_pt_.x + GetRandomScalar() * max_spawn_offset;
-        spawn_pt_.y = camera_pt_.y + GetRandomScalar() * max_spawn_offset;
+        spawn_pt_[POS_X] = camera_pt_.x() + GetRandomScalar() * max_spawn_offset;
+        spawn_pt_[POS_Y] = camera_pt_.y() + GetRandomScalar() * max_spawn_offset;
 
         DebugInterface* debug = agent_->Debug();
         debug->DebugMoveCamera(camera_pt_);
@@ -187,8 +187,8 @@ public:
         const float kRandomOffset = 10.0f;
 
         Point2D test_point = FindCenterOfMap(game_info);
-        test_point.x += GetRandomScalar() * kRandomOffset;
-        test_point.y += GetRandomScalar() * kRandomOffset;
+        test_point[POS_X] += GetRandomScalar() * kRandomOffset;
+        test_point[POS_Y] += GetRandomScalar() * kRandomOffset;
 
         camera_pos_ = ConvertWorldToMinimap(game_info, test_point);
         action->CameraMove(camera_pos_);
@@ -205,7 +205,7 @@ public:
         Point2D camera_world = agent_->Observation()->GetCameraPos();
         Point2DI camera = ConvertWorldToMinimap(game_info, camera_world);
 
-        if (camera.x != camera_pos_.x || camera.y != camera_pos_.y) {
+        if (camera.x() != camera_pos_.x() || camera.y() != camera_pos_.y()) {
             ReportError("Camera not at expected location");
         }
     }
@@ -258,10 +258,10 @@ public:
                 ReportError("Rectangle select is not being reported.");
             }
             else {
-                if (obs->GetFeatureLayerActions().select_rects.front().select_screen.front().from != Point2DI(0, 0)) {
+                if (obs->GetFeatureLayerActions().select_rects.front().select_screen.front().min != Point2DI(0, 0)) {
                     ReportError("Rectangle select is reporting the wrong start location");
                 }
-                if (obs->GetFeatureLayerActions().select_rects.front().select_screen.front().to != Point2DI(60, 60)) {
+                if (obs->GetFeatureLayerActions().select_rects.front().select_screen.front().max != Point2DI(60, 60)) {
                     ReportError("Rectangle select is reporting the wrong end location");
                 }
             }

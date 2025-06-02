@@ -1,14 +1,57 @@
-add_subdirectory(sc2api)
-add_subdirectory(sc2utils)
-add_subdirectory(sc2protocol)
+# ==============================================================================
+# cpp-sc2 Library Components
+# ==============================================================================
 
-if (BUILD_SC2_RENDERER)
-    add_subdirectory(sc2renderer)
-endif ()
+# Build subprojects in dependency order
+add_subdirectory(sc2utils)      # No dependencies
+add_subdirectory(sc2protocol)   # Depends on external protobuf only
+add_subdirectory(sc2api)        # Depends on sc2utils + sc2protocol
 
-add_library(cpp_sc2 INTERFACE)
+# ==============================================================================
+# Convenience Target
+# ==============================================================================
 
-target_link_libraries(cpp_sc2
-    INTERFACE
-        sc2api
-        sc2utils)
+# Create a convenience target that links all components
+add_library(cpp-sc2 INTERFACE)
+add_library(cppsc2::cpp-sc2 ALIAS cpp-sc2)
+
+target_link_libraries(cpp-sc2 INTERFACE
+        cppsc2::sc2utils
+        cppsc2::sc2protocol
+        cppsc2::sc2api
+)
+
+# ==============================================================================
+# Package Export Configuration
+# ==============================================================================
+
+# Install targets and export them
+install(TARGETS cpp-sc2 sc2utils sc2protocol sc2api
+        EXPORT cpp-sc2-targets
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
+        INCLUDES DESTINATION include
+)
+
+# Install headers
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/
+        DESTINATION include
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+)
+
+# Export targets for other CMake projects
+install(EXPORT cpp-sc2-targets
+        FILE cpp-sc2-targets.cmake
+        NAMESPACE cppsc2::
+        DESTINATION lib/cmake/cpp-sc2
+)
+
+# ==============================================================================
+# Status Summary
+# ==============================================================================
+
+message(STATUS "cpp-sc2 libraries configured:")
+message(STATUS "  sc2utils: Cross-platform utilities")
+message(STATUS "  sc2protocol: Protocol buffer definitions")
+message(STATUS "  sc2api: Core StarCraft II API")

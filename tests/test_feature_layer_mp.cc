@@ -111,18 +111,18 @@ public:
             act->CameraMove(target_minimap);
         }
         else if (loop == 10) {
-            Point2D target = obs->GetStartLocation() + Point2D(3.0f, 3.0f);
+            Point2D target = obs->GetStartLocation() + Point3D(3.0f, 3.0f, 0.0f);
             debug->DebugCreateUnit(UNIT_TYPEID::PROTOSS_PROBE, target, agent_->Observation()->GetPlayerID(), 1);
             debug->DebugIgnoreMineral();
             debug->SendDebug();
         }
         else if (loop == 15) {
-            Point2D target = obs->GetStartLocation() + Point2D(3.0f, 3.0f);
+            Point2D target = obs->GetStartLocation() + Point3D(3.0f, 3.0f, 0.0f);
             Point2DI target_camera = ConvertWorldToCamera(game_info, obs->GetCameraPos(), target);
             act->Select(target_camera, PointSelectionType::PtSelect);
         }
         else if (loop == 20) {
-            Point2D target = obs->GetStartLocation() + Point2D(3.0f, 3.0f);
+            Point2D target = obs->GetStartLocation() + Point3D(3.0f, 3.0f, 0.0f);
             Point2DI target_camera = ConvertWorldToCamera(game_info, obs->GetCameraPos(), target);
             act->UnitCommand(ABILITY_ID::BUILD_PYLON, target_camera);
         }
@@ -130,7 +130,7 @@ public:
 
     void OnTestFinish() override {
         const ObservationInterface* obs = agent_->Observation();
-        Units pylons = obs->GetUnits(Unit::Self, IsUnit(UNIT_TYPEID::PROTOSS_PYLON));
+        Units pylons = obs->GetUnits(Unit::Self, isUnit(UNIT_TYPEID::PROTOSS_PYLON));
         if (pylons.size() == 0)
             ReportError("Failed to build pylon");
     }

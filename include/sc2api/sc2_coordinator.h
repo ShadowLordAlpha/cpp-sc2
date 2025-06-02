@@ -10,6 +10,8 @@
 
 #include <vector>
 #include <string>
+#include <memory>
+
 #include "sc2api/sc2_game_settings.h"
 #include "sc2api/sc2_proto_interface.h"
 
@@ -204,7 +206,7 @@ public:
     std::filesystem::path GetExePath() const;
 
 private:
-    CoordinatorImp* imp_;
+    std::unique_ptr<CoordinatorImp> imp_;
 };
 
 }

@@ -6,20 +6,6 @@
 #include "s2clientprotocol/sc2api.pb.h"
 
 namespace sc2 {
-   
-CategoryScoreDetails::CategoryScoreDetails() :
-    none(0.0f),
-    army(0.0f),
-    economy(0.0f),
-    technology(0.0f),
-    upgrade(0.0f) {
-}
-
-VitalScoreDetails::VitalScoreDetails() :
-    life(0.0f),
-    shields(0.0f),
-    energy(0.0f) {
-}
 
 ScoreDetails::ScoreDetails() :    
     idle_production_time(0.0f),
@@ -34,11 +20,6 @@ ScoreDetails::ScoreDetails() :
     collection_rate_vespene(0.0f),
     spent_minerals(0.0f),
     spent_vespene(0.0f) {
-}
-
-Score::Score() :
-    score_type(ScoreType::Melee),
-    score(0) {
 }
 
 bool Score::IsEqual(const Score& other_score) const {

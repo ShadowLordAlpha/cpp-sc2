@@ -1,13 +1,11 @@
 #pragma once
 
+#define NOMINMAX
+
 #include <vector>
 #include <string>
 #include <filesystem>
 #include <optional>
-
-#if defined(_WIN32)
-#define NOMINMAX
-#endif
 
 
 namespace sc2::fs

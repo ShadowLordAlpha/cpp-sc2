@@ -1,6 +1,5 @@
 #include "sc2utils/platform.h"
 
-
 #include <algorithm>   // For std::find
 
 #include <cstdio>

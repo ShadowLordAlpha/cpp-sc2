@@ -24,8 +24,8 @@ public:
 
         for (const auto& unit : obs->GetUnits()) {
             sc2::Point2D target(
-               (unit->pos.x < 35.0f) ? 40.0f : 30.0f,
-                unit->pos.y
+               (unit->pos.x() < 35.0f) ? 40.0f : 30.0f,
+                unit->pos.y()
             );
 
             act->UnitCommand(unit, ABILITY_ID::GENERAL_PATROL, target);

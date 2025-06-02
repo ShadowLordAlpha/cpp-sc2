@@ -181,9 +181,9 @@ bool Convert(const ObservationRawPtr& observation_raw, UnitPool& unit_pool, uint
         unit->owner = observation_unit.owner();
 
         const SC2APIProtocol::Point& pt = observation_unit.pos();
-        unit->pos.x = pt.x();
-        unit->pos.y = pt.y();
-        unit->pos.z = pt.z();
+        unit->pos[POS_X] = pt.x();
+        unit->pos[POS_Y] = pt.y();
+        unit->pos[POS_Z] = pt.z();
         unit->facing = observation_unit.facing();
         unit->radius = observation_unit.radius();
 
@@ -242,8 +242,8 @@ bool Convert(const ObservationRawPtr& observation_raw, UnitPool& unit_pool, uint
             UnitOrder order;
             order.ability_id = order_proto.ability_id();
             order.target_unit_tag = order_proto.target_unit_tag();
-            order.target_pos.x = order_proto.target_world_space_pos().x();
-            order.target_pos.y = order_proto.target_world_space_pos().y();
+            order.target_pos[POS_X] = order_proto.target_world_space_pos().x();
+            order.target_pos[POS_Y] = order_proto.target_world_space_pos().y();
             order.progress = order_proto.progress();
             unit->orders.push_back(order);
         }
@@ -295,7 +295,7 @@ bool Convert(const ObservationRawPtr& observation_raw, UnitPool& unit_pool, uint
         unit->armor_upgrade_level = observation_unit.armor_upgrade_level();
         unit->shield_upgrade_level = observation_unit.shield_upgrade_level();
 
-        unit->is_building = IsBuilding()(unit->unit_type);
+        unit->is_building = isBuilding(unit->unit_type);
     }
 
     return true;
@@ -362,8 +362,8 @@ void ConvertRawActions(const ResponseObservationPtr& response_observation_ptr, R
         }
         else if (action_raw_command.has_target_world_space_pos()) {
             action.target_type = ActionRaw::TargetPosition;
-            action.target_point.x = action_raw_command.target_world_space_pos().x();
-            action.target_point.y = action_raw_command.target_world_space_pos().y();
+            action.target_point[POS_X] = action_raw_command.target_world_space_pos().x();
+            action.target_point[POS_Y] = action_raw_command.target_world_space_pos().y();
         }
 
         for (int j = 0; j < action_raw_command.unit_tags_size(); ++j)
@@ -394,13 +394,13 @@ static void ConvertSpatialAction (const SC2APIProtocol::ActionSpatial& action_pr
         command.ability_id = AbilityID(action_command.ability_id());
         if (action_command.has_target_screen_coord()) {
             command.target_type = SpatialUnitCommand::TargetScreen;
-            command.target.x = action_command.target_screen_coord().x();
-            command.target.y = action_command.target_screen_coord().y();
+            command.target[POS_X] = action_command.target_screen_coord().x();
+            command.target[POS_Y] = action_command.target_screen_coord().y();
         }
         else if (action_command.has_target_minimap_coord()) {
             command.target_type = SpatialUnitCommand::TargetMinimap;
-            command.target.x = action_command.target_minimap_coord().x();
-            command.target.y = action_command.target_minimap_coord().y();
+            command.target[POS_X] = action_command.target_minimap_coord().x();
+            command.target[POS_Y] = action_command.target_minimap_coord().y();
         }
         command.queued = action_command.queue_command();
 
@@ -410,8 +410,8 @@ static void ConvertSpatialAction (const SC2APIProtocol::ActionSpatial& action_pr
         const SC2APIProtocol::ActionSpatialCameraMove& action_camera = action_proto.camera_move();
 
         SpatialCameraMove camera;
-        camera.center_minimap.x = action_camera.center_minimap().x();
-        camera.center_minimap.y = action_camera.center_minimap().y();
+        camera.center_minimap[POS_X] = action_camera.center_minimap().x();
+        camera.center_minimap[POS_Y] = action_camera.center_minimap().y();
 
         actions.camera_moves.push_back(camera);
     }
@@ -419,8 +419,8 @@ static void ConvertSpatialAction (const SC2APIProtocol::ActionSpatial& action_pr
         const SC2APIProtocol::ActionSpatialUnitSelectionPoint& action_select = action_proto.unit_selection_point();
 
         SpatialSelectPoint select;
-        select.select_screen.x = action_select.selection_screen_coord().x();
-        select.select_screen.y = action_select.selection_screen_coord().y();
+        select.select_screen[POS_X] = action_select.selection_screen_coord().x();
+        select.select_screen[POS_Y] = action_select.selection_screen_coord().y();
         if (!Convert(action_select.type(), select.type))
             return;
 
@@ -434,10 +434,10 @@ static void ConvertSpatialAction (const SC2APIProtocol::ActionSpatial& action_pr
             const SC2APIProtocol::RectangleI& rect_proto = action_select.selection_screen_coord(j);
 
             Rect2DI rect;
-            rect.from.x = rect_proto.p0().x();
-            rect.from.y = rect_proto.p0().y();
-            rect.to.x = rect_proto.p1().x();
-            rect.to.y = rect_proto.p1().y();
+            rect.min[POS_X] = rect_proto.p0().x();
+            rect.min[POS_Y] = rect_proto.p0().y();
+            rect.max[POS_X] = rect_proto.p1().x();
+            rect.max[POS_Y] = rect_proto.p1().y();
             select.select_screen.push_back(rect);
         }
         select.select_add = action_select.selection_add();
@@ -519,13 +519,13 @@ bool Convert(const ResponseGameInfoPtr& response_game_info_ptr, GameInfo& game_i
 
     if (start_raw.has_playable_area()) {
         if (start_raw.playable_area().has_p0()) {
-            game_info.playable_min.x = static_cast<float>(start_raw.playable_area().p0().x());
-            game_info.playable_min.y = static_cast<float>(start_raw.playable_area().p0().y());
+            game_info.playable_min[POS_X] = static_cast<float>(start_raw.playable_area().p0().x());
+            game_info.playable_min[POS_Y] = static_cast<float>(start_raw.playable_area().p0().y());
         }
 
         if (start_raw.playable_area().has_p1()) {
-            game_info.playable_max.x = static_cast<float>(start_raw.playable_area().p1().x());
-            game_info.playable_max.y = static_cast<float>(start_raw.playable_area().p1().y());
+            game_info.playable_max[POS_X] = static_cast<float>(start_raw.playable_area().p1().x());
+            game_info.playable_max[POS_Y] = static_cast<float>(start_raw.playable_area().p1().y());
         }
     }
 

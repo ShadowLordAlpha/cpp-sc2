@@ -22,7 +22,7 @@ public:
     SnapshotTestBot();
 
     bool IsNearPos(const Point2D& a, const Point2D& b) const {
-        float d = Distance2D(a, b);
+        float d = distance(a, b);
         return d < 0.5f;
     }
 private:
@@ -84,7 +84,7 @@ public:
         //base.x_ += (playable_max.x_ - center.x_) * 0.5f;
         agent_->Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_COMMANDCENTER, base, player_id, 1);
         Point2D scv_pt = base;
-        scv_pt.y += 4.0f;
+        scv_pt[POS_Y] += 4.0f;
         agent_->Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_SCV, scv_pt, player_id, 1);
 
         // Build a mineral patch.
@@ -154,8 +154,8 @@ public:
         bot_->scv_pos_ = unit_scv->pos;
         Point2DI scv_pt = ConvertWorldToCamera(obs->GetGameInfo(), camera_world, bot_->scv_pos_);
         actions->Select(scv_pt, PointSelectionType::PtSelect);
-        std::cout << "Selecting an scv at world pt: " << std::to_string(unit_scv->pos.x) << ", " << std::to_string(unit_scv->pos.y) << std::endl;
-        std::cout << "Selecting an scv at screen pt: " << std::to_string(scv_pt.x) << ", " << std::to_string(scv_pt.y) << std::endl;
+        std::cout << "Selecting an scv at world pt: " << std::to_string(unit_scv->pos.x()) << ", " << std::to_string(unit_scv->pos.y()) << std::endl;
+        std::cout << "Selecting an scv at screen pt: " << std::to_string(scv_pt.x()) << ", " << std::to_string(scv_pt.y()) << std::endl;
     }
 };
 
@@ -171,7 +171,7 @@ public:
         Point2D camera_world = obs->GetCameraPos();
 
         Point2D empty_pos = bot_->mineral_pos_;
-        empty_pos.y += 5;
+        empty_pos[POS_Y] += 5;
         Point2DI empty_pos_screen = ConvertWorldToCamera(agent_->Observation()->GetGameInfo(), camera_world, empty_pos);
         actions->UnitCommand(ABILITY_ID::HARVEST_GATHER, empty_pos_screen);
     }
