@@ -141,6 +141,20 @@ if(BUILD_TESTS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests" AND IS_DIRECTORY "
 endif()
 
 # ==============================================================================
+# Installation Targets
+# ==============================================================================
+
+install(TARGETS sc2utils sc2api sc2protocol
+        EXPORT cpp-sc2Targets
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
+)
+
+install(DIRECTORY include/ DESTINATION include)
+
+
+# ==============================================================================
 # Status Summary
 # ==============================================================================
 
