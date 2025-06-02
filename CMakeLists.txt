@@ -140,23 +140,16 @@ if(BUILD_TESTS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests" AND IS_DIRECTORY "
     add_subdirectory(tests)
 endif()
 
-# ==============================================================================
-# Installation Targets
-# ==============================================================================
-
-install(TARGETS sc2utils sc2api sc2protocol
-        EXPORT cpp-sc2Targets
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        RUNTIME DESTINATION bin
-)
-
-install(DIRECTORY include/ DESTINATION include)
-
 
 # ==============================================================================
 # Status Summary
 # ==============================================================================
 
-message(STATUS "cpp-sc2 ${PROJECT_VERSION} - SC2${SC2_VERSION} - C++${CMAKE_CXX_STANDARD} - ${CMAKE_BUILD_TYPE}")
-message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "cpp-sc2 configuration:")
+message(STATUS "  Version: ${PROJECT_VERSION}")
+message(STATUS "  SC2 Target: ${SC2_VERSION}")
+message(STATUS "  C++ Standard: C++${CMAKE_CXX_STANDARD}")
+message(STATUS "  Build Type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "  Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "  Examples: ${BUILD_EXAMPLES}")
+message(STATUS "  Tests: ${BUILD_TESTS}")
