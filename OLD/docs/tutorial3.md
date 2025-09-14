@@ -53,7 +53,7 @@ We now have the necessary helper functions to implement TryBuildBarracks.
 
 ```C++
 bool TryBuildBarracks() {
-    const ObservationInterface* observation = Observation();
+    const ObservationInterface* gameState = Observation();
 
     if (CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOT) < 1) {
         return false;
@@ -197,12 +197,12 @@ private:
     }
 
     bool TryBuildStructure(ABILITY_ID ability_type_for_structure, UNIT_TYPEID unit_type = UNIT_TYPEID::TERRAN_SCV) {
-        const ObservationInterface* observation = Observation();
+        const ObservationInterface* gameState = Observation();
 
         // If a unit already is building a supply structure of this type, do nothing.
         // Also get an scv to build the structure.
         const Unit* unit_to_build = nullptr;
-        Units units = observation->GetUnits(Unit::Alliance::Self);
+        Units units = gameState->GetUnits(Unit::Alliance::Self);
         for (const auto& unit : units) {
             for (const auto& order : unit->orders) {
                 if (order.ability_id == ability_type_for_structure) {
@@ -226,10 +226,10 @@ private:
     }
 
     bool TryBuildSupplyDepot() {
-        const ObservationInterface* observation = Observation();
+        const ObservationInterface* gameState = Observation();
 
         // If we are not supply capped, don't build a supply depot.
-        if (observation->GetFoodUsed() <= observation->GetFoodCap() - 2)
+        if (observation->GetFoodUsed() <= gameState->GetFoodCap() - 2)
             return false;
 
         // Try and build a depot. Find a random SCV and give it the order.
@@ -253,7 +253,7 @@ private:
     }
 
     bool TryBuildBarracks() {
-        const ObservationInterface* observation = Observation();
+        const ObservationInterface* gameState = Observation();
 
         if (CountUnitType(UNIT_TYPEID::TERRAN_SUPPLYDEPOT) < 1) {
             return false;
