@@ -44,17 +44,9 @@ if (WSL2_CROSS_COMPILE)
     endforeach ()
 # Compile protos with protoc
 else ()
-    if (NOT Protobuf_PROTOC_EXECUTABLE)
-        message(STATUS "Searching for Protoc compiler (protoc)")
-        find_program(Protobuf_PROTOC_EXECUTABLE
-                NAMES protoc
-                PATHS /usr/bin /usr/local/bin ${PROJECT_BINARY_DIR}/bin
-                NO_CMAKE_FIND_ROOT_PATH
-        )
-    endif()
-
-    if (NOT Protobuf_PROTOC_EXECUTABLE)
-        message(FATAL_ERROR "Protobuf compiler (protoc) not specified and not found on host!")
+    set(protoc_executable Protobuf_PROTOC_EXECUTABLE)
+    if (NOT protoc_executable)
+        set(protoc_executable ${PROJECT_BINARY_DIR}/bin/protoc)
     endif()
 
     foreach (proto ${proto_files})
@@ -67,11 +59,11 @@ else ()
                 "${protoc_out_cc}"
                 "${protoc_out_h}"
             COMMAND
-                "${Protobuf_PROTOC_EXECUTABLE}"
+                "${protoc_executable}"
                 "-I=${sc2protocol_SOURCE_DIR}"
                 "--cpp_out=${PROJECT_BINARY_DIR}/generated"
                 "${proto}"
-            DEPENDS ${Protobuf_PROTOC_EXECUTABLE} ${proto_files}
+            DEPENDS ${protoc_executable} ${proto_files}
             VERBATIM
         )
     endforeach()
