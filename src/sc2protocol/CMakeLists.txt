@@ -44,6 +44,11 @@ if (WSL2_CROSS_COMPILE)
     endforeach ()
 # Compile protos with protoc
 else ()
+    set(protoc_executable ${Protobuf_PROTOC_EXECUTABLE})
+    if (NOT protoc_executable)
+        set(protoc_executable ${PROJECT_BINARY_DIR}/bin/protoc)
+    endif()
+
     foreach (proto ${proto_files})
         get_filename_component(proto_name_we ${proto} NAME_WE)
         set(protoc_out_cc "${proto_generation_dir}/${proto_name_we}.pb.cc")
@@ -54,11 +59,11 @@ else ()
                 "${protoc_out_cc}"
                 "${protoc_out_h}"
             COMMAND
-                "${PROJECT_BINARY_DIR}/bin/protoc"
+                "${protoc_executable}"
                 "-I=${sc2protocol_SOURCE_DIR}"
                 "--cpp_out=${PROJECT_BINARY_DIR}/generated"
                 "${proto}"
-            DEPENDS protoc
+            DEPENDS ${protoc_executable} ${proto_files}
             VERBATIM
         )
     endforeach()

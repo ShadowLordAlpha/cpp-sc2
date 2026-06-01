@@ -4,7 +4,7 @@ set(protobuf_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(protobuf_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 # Do not build Protobuf compiler if using precompiled proto files
-if (WSL2_CROSS_COMPILE)
+if (WSL2_CROSS_COMPILE OR Protobuf_PROTOC_EXECUTABLE)
     set(protobuf_BUILD_PROTOC_BINARIES OFF CACHE BOOL "" FORCE)
 endif ()
 
