@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - Ladder
+      - Cross
     paths-ignore:
       - '.github/ISSUE_TEMPLATE/**'
       - 'docs/**'
