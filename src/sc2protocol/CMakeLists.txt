@@ -44,7 +44,7 @@ if (WSL2_CROSS_COMPILE)
     endforeach ()
 # Compile protos with protoc
 else ()
-    set(protoc_executable Protobuf_PROTOC_EXECUTABLE)
+    set(protoc_executable ${Protobuf_PROTOC_EXECUTABLE})
     if (NOT protoc_executable)
         set(protoc_executable ${PROJECT_BINARY_DIR}/bin/protoc)
     endif()
