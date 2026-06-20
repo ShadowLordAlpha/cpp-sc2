@@ -13,12 +13,12 @@ enum class FeatureLayerType {
 
 struct FeatureLayer8BPP {
     bool InBounds(const Point2DI& pos) {
-        return pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height;
+        return pos.x() >= 0 && pos.x() < width && pos.y() >= 0 && pos.y() < height;
     }
 
     char Read(const Point2DI& pos) {
         assert(InBounds(pos));
-        return data[pos.x + pos.y * width];
+        return data[pos.x() + pos.y() * width];
     }
 
     int width;

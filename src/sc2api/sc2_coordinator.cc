@@ -16,6 +16,7 @@
 #include <cassert>
 #include <thread>
 
+#include "sc2utils/logger.h"
 #include "sc2utils/sc2_utils.h"
 
 namespace sc2 {
@@ -82,13 +83,11 @@ int LaunchProcess(ProcessSettings& process_settings, Client* client, int window_
 
     if (!pi.process->start(process_settings.process_path, cl, support_directory))
     {
-        std::cerr << "Unable to start sc2 executable with path: "
-            << process_settings.process_path
-            << std::endl;
+        SC2_LOG_ERROR("Unable to start sc2 executable with path: {}", process_settings.process_path.string());
     }
     else
     {
-        std::cout << "Launched SC2 " << pi.process << std::endl;
+        SC2_LOG_INFO("Launched SC2: {}", pi.process->string());
     }
 
     client->Control()->SetProcessInfo(pi);
@@ -248,7 +247,7 @@ bool CoordinatorImp::ShouldRelaunch(ReplayObserver* r) {
     if (!FindSC2VersionExe(process_settings_.process_path, replay_info.base_build))
         return false;
 
-    std::cout << "Replay is from a different version. Relaunching client into the correct version..." << std::endl;
+    SC2_LOG_INFO("Replay is from a different version. Relaunching client into the correct version...");
     process_settings_.data_version = replay_info.data_version;
     r->Control()->Error(ClientError::WrongGameVersion);
     return true;
@@ -582,7 +581,7 @@ bool CoordinatorImp::JoinGame() {
             game_settings_.raw_affects_selection);
 
         if (!game_join_request) {
-            std::cerr << "Unable to join game." << std::endl;
+            SC2_LOG_ERROR("Unable to join game.");
             exit(1);
         }
     }
@@ -630,7 +629,7 @@ bool CoordinatorImp::StartGame() {
     assert(starcraft_started_);
     bool is_game_created = CreateGame();
     if (!is_game_created) {
-        std::cerr << "Failed to create game." << std::endl;
+        SC2_LOG_ERROR("Failed to create game.");
         exit(1);
     }
     return JoinGame();
@@ -667,12 +666,10 @@ bool CoordinatorImp::Relaunch(ReplayObserver* replay_observer) {
 // Coordinator.
 
 Coordinator::Coordinator() {
-    imp_ = new CoordinatorImp();
+    imp_ = std::make_unique<CoordinatorImp>();
 }
 
-Coordinator::~Coordinator() {
-    delete imp_;
-}
+Coordinator::~Coordinator() = default;
 
 bool Coordinator::StartGame(const std::string& map_path) {
     if (!map_path.empty())
@@ -727,11 +724,10 @@ bool Coordinator::LoadSettings(int argc, char** argv) {
 
 void Coordinator::LaunchStarcraft() {
     if (!std::filesystem::exists(imp_->process_settings_.process_path)) {
-        std::cerr << "Executable path can't be found, try running the StarCraft II executable first." << std::endl;
+        SC2_LOG_ERROR("Executable path can't be found, try running the StarCraft II executable first.");
         if (!imp_->process_settings_.process_path.empty()) {
-            std::cerr << imp_->process_settings_.process_path << " does not exist on your filesystem.";
+            SC2_LOG_ERROR("{} does not exist on your filesystem.");
         }
-        std::cerr << std::endl;
         assert(!"Could not find the executable. Supply a valid path.");
         exit(1);
     }
@@ -757,7 +753,7 @@ void Coordinator::Connect(int port) {
         imp_->process_settings_.net_address,
         port,
         imp_->process_settings_.timeout_ms)) {
-        std::cerr << "Failed to attach to starcraft." << std::endl;
+        SC2_LOG_ERROR("Failed to attach to starcraft.");
         exit(1);
     }
 

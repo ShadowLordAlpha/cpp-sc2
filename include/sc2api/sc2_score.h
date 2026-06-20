@@ -5,9 +5,10 @@
 
 #include "sc2_proto_interface.h"
 #include "sc2_gametypes.h"
+
 #include <vector>
 #include <string>
-#include <stdint.h>
+#include <cstdint>
 
 namespace sc2 {
 
@@ -21,15 +22,9 @@ enum class ScoreType {
 
 struct ScoreEntry {
     std::string name;
-    int offset;
-    bool use;
-    bool nonzero;
-
-    ScoreEntry() :
-        offset(0),
-        use(true),
-        nonzero(false) {
-    }
+    int offset = 0;
+    bool use = false;
+    bool nonzero = false;
 };
 
 #define SET_ENTRY_BASE(STRUCTNAME, ENTRYNAME)                                       \
@@ -66,13 +61,11 @@ struct ScoreEntry {
 
 //! Score by category.
 struct CategoryScoreDetails {
-    float none;
-    float army;
-    float economy;
-    float technology;
-    float upgrade;
-
-    CategoryScoreDetails();
+    float none = 0.0f;
+    float army = 0.0f;
+    float economy = 0.0f;
+    float technology = 0.0f;
+    float upgrade = 0.0f;
 
     static void AddEntries(ScoreEntry base, std::vector<ScoreEntry>& entries) {
         SET_ENTRY(CategoryScoreDetails, none)
@@ -85,11 +78,9 @@ struct CategoryScoreDetails {
 
 //! Score for vitals.
 struct VitalScoreDetails {
-    float life;
-    float shields;
-    float energy;
-
-    VitalScoreDetails();
+    float life = 0.0f;
+    float shields = 0.0f;
+    float energy = 0.0f;
 
     static void AddEntries(ScoreEntry base, std::vector<ScoreEntry>& entries) {
         SET_ENTRY(VitalScoreDetails, life)
@@ -177,15 +168,13 @@ struct ScoreDetails {
 
 //! Scores.
 struct Score {
-    ScoreType score_type;
-    float score;                     // Note: check score_type to know whether this is a melee score or curriculum score
+    ScoreType score_type = ScoreType::Melee;
+    float score = 0.0f; // Note: check score_type to know whether this is a melee score or curriculum score
     ScoreDetails score_details;
 
     // Access as a flat list of floats.
     static const int float_count_ = sizeof(ScoreDetails) / sizeof(float) + 1;
     const float* RawFloats() const { return &score; }
-
-    Score();
 
     static void AddEntries(std::vector<ScoreEntry>& entries) {
         SET_ENTRY_BASE(Score, score)

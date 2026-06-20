@@ -181,6 +181,7 @@ namespace sc2
         {
             SPDLOG_INFO("[CLIENT] Disconnecting...");
             connection.stop();
+            SPDLOG_INFO("[CLIENT] Disconnected");
         }
     }
 

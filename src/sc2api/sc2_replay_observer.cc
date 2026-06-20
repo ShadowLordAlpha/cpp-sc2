@@ -276,8 +276,8 @@ void ObserverActionImp::CameraMove(const Point2D& point, float distance) {
     SC2APIProtocol::ObserverAction* action = request->add_actions();
     SC2APIProtocol::ActionObserverCameraMove* camera_move = action->mutable_camera_move();
     camera_move->set_distance(distance);
-    camera_move->mutable_world_pos()->set_x(point.x);
-    camera_move->mutable_world_pos()->set_y(point.y);
+    camera_move->mutable_world_pos()->set_x(point.x());
+    camera_move->mutable_world_pos()->set_y(point.y());
 }
 
 void ObserverActionImp::CameraFollowPlayer() {

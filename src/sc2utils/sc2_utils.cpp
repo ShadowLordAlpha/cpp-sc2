@@ -1,7 +1,6 @@
 #include "sc2api/sc2_api.h"
 #include "sc2utils/sc2_utils.h"
-
-#include <cstdlib>
+#include "sc2utils/platform.h"
 
 #if defined(_WIN32)
     #include <windows.h>
@@ -13,10 +12,10 @@ namespace sc2
     Point2D FindRandomLocation(const Point2D &min, const Point2D &max)
     {
         Point2D target_pos;
-        float playable_w = max.x - min.x;
-        float playable_h = max.y - min.y;
-        target_pos.x = playable_w * GetRandomFraction() + min.x;
-        target_pos.y = playable_h * GetRandomFraction() + min.y;
+        float playable_w = max.x() - min.x();
+        float playable_h = max.y() - min.y();
+        target_pos[POS_X] = playable_w * GetRandomFraction() + min.x();
+        target_pos[POS_Y] = playable_h * GetRandomFraction() + min.y();
         return target_pos;
     }
 
@@ -28,8 +27,8 @@ namespace sc2
     Point2D FindCenterOfMap(const GameInfo &game_info)
     {
         Point2D target_pos;
-        target_pos.x = game_info.playable_max.x / 2.0f;
-        target_pos.y = game_info.playable_max.y / 2.0f;
+        target_pos[POS_X] = game_info.playable_max.x() / 2.0f;
+        target_pos[POS_Y] = game_info.playable_max.y() / 2.0f;
         return target_pos;
     }
 
@@ -45,12 +44,12 @@ namespace sc2
         while (loc < 360.0f)
         {
             Point2D point = Point2D(
-                (radius * std::cos((loc * PI) / 180.0f)) + center.x,
-                (radius * std::sin((loc * PI) / 180.0f)) + center.y);
+                (radius * std::cos((loc * PI) / 180.0f)) + center.x(),
+                (radius * std::sin((loc * PI) / 180.0f)) + center.y());
 
             QueryInterface::PlacementQuery query(ABILITY_ID::BUILD_COMMANDCENTER, point);
 
-            current_grid = Point2D(std::floor(point.x), std::floor(point.y));
+            current_grid = Point2D(std::floor(point.x()), std::floor(point.y()));
 
             if (previous_grid != current_grid)
             {
@@ -78,7 +77,7 @@ namespace sc2
             // Find the cluster this mineral patch is closest to.
             for (auto &cluster: clusters)
             {
-                float d = DistanceSquared3D(u.pos, cluster.first);
+                float d = distanceSquared(u.pos, cluster.first);
                 if (d < distance)
                 {
                     distance = d;
@@ -175,7 +174,7 @@ namespace sc2
 
                 Point2D &p = queries[j].target_pos;
 
-                float d = Distance2D(p, cluster.first);
+                float d = sc2::distance(p, cluster.first);
                 if (d < distance)
                 {
                     distance = d;
@@ -183,7 +182,7 @@ namespace sc2
                 }
             }
 
-            Point3D expansion(closest.x, closest.y, cluster.second.begin()->pos.z);
+            Point3D expansion(closest.x(), closest.y(), cluster.second.begin()->pos.z());
 
             if (parameters.debug_)
             {

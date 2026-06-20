@@ -4,13 +4,11 @@
 
 #include <spdlog/spdlog.h>
 
-namespace sc2
-{
+namespace sc2 {
+
     template<class T>
-    static void SendMessage(ix::WebSocket *client, std::queue<T> &message_queue)
-    {
-        if (message_queue.empty())
-        {
+    static void SendMessage(ix::WebSocket *client, std::queue<T> &message_queue) {
+        if (message_queue.empty()) {
             return;
         }
 
@@ -26,16 +24,14 @@ namespace sc2
         delete message;
     }
 
-    Server::~Server()
-    {
+    Server::~Server() {
         webSocketServer->stop();
     }
 
-    bool Server::Listen(int listeningPort, const char *requestTimeoutMs, const char *websocketTimeoutMs, const char *numThreads)
-    {
+    bool Server::Listen(int listeningPort, const char *requestTimeoutMs, const char *websocketTimeoutMs,
+                        const char *numThreads) {
         ix::initNetSystem();
-        if (webSocketServer)
-        {
+        if (webSocketServer) {
             SPDLOG_ERROR("[SERVER] already started");
             return false;
         }
@@ -43,36 +39,32 @@ namespace sc2
         webSocketServer = std::make_unique<ix::WebSocketServer>(listeningPort);
 
         webSocketServer->setOnClientMessageCallback(
-            [this](const std::shared_ptr<ix::ConnectionState> &connectionState, ix::WebSocket &webSocket, const ix::WebSocketMessagePtr &msg)
-            {
-                if (msg->type == ix::WebSocketMessageType::Open)
-                {
-                    SPDLOG_TRACE("[SERVER] Client Connected: {}:{}", connectionState->getRemoteIp(), connectionState->getRemotePort());
-                    clients.push_back(&webSocket); // TODO: check why these are actually needed...
-                } else if (msg->type == ix::WebSocketMessageType::Message)
-                {
-                    SPDLOG_TRACE("[SERVER] Message Recieved From: {}:{} - {}", connectionState->getRemoteIp(), connectionState->getRemotePort(), msg->str);
+                [this](const std::shared_ptr<ix::ConnectionState> &connectionState, ix::WebSocket &webSocket,
+                       const ix::WebSocketMessagePtr &msg) {
+                    if (msg->type == ix::WebSocketMessageType::Open) {
+                        SPDLOG_TRACE("[SERVER] Client Connected: {}:{}", connectionState->getRemoteIp(),
+                                     connectionState->getRemotePort());
+                        clients.push_back(&webSocket); // TODO: check why these are actually needed...
+                    } else if (msg->type == ix::WebSocketMessageType::Message) {
+                        SPDLOG_TRACE("[SERVER] Message Recieved From: {}:{} - {}", connectionState->getRemoteIp(),
+                                     connectionState->getRemotePort(), msg->str);
 
-                    auto *request = new SC2APIProtocol::Request();
-                    if (!request->ParseFromString(msg->str))
-                    {
-                        // The server can only receive valid requests off civetweb threads. Otherwise, die.
-                        SPDLOG_WARN("[SERVER] Invalid Request: {}", msg->str);
+                        auto *request = new SC2APIProtocol::Request();
+                        if (!request->ParseFromString(msg->str)) {
+                            // The server can only receive valid requests off civetweb threads. Otherwise, die.
+                            SPDLOG_WARN("[SERVER] Invalid Request: {}", msg->str);
+                        } else {
+                            QueueRequest(&webSocket, request);
+                        }
+                    } else if (msg->type == ix::WebSocketMessageType::Close) {
+                        SPDLOG_TRACE("[SERVER] Client Closed: {}:{}", connectionState->getRemoteIp(),
+                                     connectionState->getRemotePort());
+                        clients.erase(std::remove(clients.begin(), clients.end(), &webSocket), clients.end());
+                        // TODO: remove from request and responce queues as well?
                     }
-                    else
-                    {
-                        QueueRequest(&webSocket, request);
-                    }
-                } else if (msg->type == ix::WebSocketMessageType::Close)
-                {
-                    SPDLOG_TRACE("[SERVER] Client Closed: {}:{}", connectionState->getRemoteIp(), connectionState->getRemotePort());
-                    clients.erase(std::remove(clients.begin(), clients.end(), &webSocket), clients.end());
-                    // TODO: remove from request and responce queues as well?
-                }
-            });
+                });
 
-        if (webSocketServer->listenAndStart())
-        {
+        if (webSocketServer->listenAndStart()) {
             SPDLOG_INFO("[SERVER] Server has started on port: {}", webSocketServer->getPort());
             return true;
         }
@@ -81,57 +73,49 @@ namespace sc2
         return false;
     }
 
-    void Server::QueueRequest(ix::WebSocket *conn, SC2APIProtocol::Request *&request)
-    {
+    void Server::QueueRequest(ix::WebSocket *conn, SC2APIProtocol::Request *&request) {
         request_mutex.lock();
         requests.emplace(conn, request);
         request_mutex.unlock();
     }
 
-    void Server::QueueResponse(ix::WebSocket *conn, SC2APIProtocol::Response *&response)
-    {
+    void Server::QueueResponse(ix::WebSocket *conn, SC2APIProtocol::Response *&response) {
         response_mutex.lock();
         responses.emplace(conn, response);
         response_mutex.unlock();
     }
 
-    void Server::SendRequest(ix::WebSocket *conn)
-    {
+    void Server::SendRequest(ix::WebSocket *conn) {
         request_mutex.lock();
         SendMessage(conn ? conn : clients.front(), requests);
         request_mutex.unlock();
     }
 
-    void Server::SendResponse(ix::WebSocket *conn)
-    {
+    void Server::SendResponse(ix::WebSocket *conn) {
         response_mutex.lock();
         SendMessage(conn ? conn : clients.front(), responses);
         response_mutex.unlock();
     }
 
-    bool Server::HasRequest()
-    {
+    bool Server::HasRequest() {
         request_mutex.lock();
         bool empty = requests.empty();
         request_mutex.unlock();
         return !empty;
     }
 
-    bool Server::HasResponse()
-    {
+    bool Server::HasResponse() {
         response_mutex.lock();
         bool empty = responses.empty();
         response_mutex.unlock();
         return !empty;
     }
 
-    const RequestData &Server::PeekRequest()
-    {
+    const RequestData &Server::PeekRequest() {
         return requests.front();
     }
 
-    const ResponseData &Server::PeekResponse()
-    {
+    const ResponseData &Server::PeekResponse() {
         return responses.front();
     }
 }

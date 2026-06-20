@@ -4,13 +4,6 @@
 
 namespace sc2 {
 
-ImageData::ImageData () :
-    width(0),
-    height(0),
-    bits_per_pixel(0)
-{
-}
-
 GameInfo::GameInfo () :
     width(0),
     height(0)
@@ -27,26 +20,28 @@ SampleImage::SampleImage(const ImageData& data):
     bits_per_pixel_(data.bits_per_pixel) {
 }
 
-bool SampleImage::GetBit(const Point2DI& point, bool* dst) const {
+bool SampleImage::GetBit(const Point2i& point, bool* dst) const {
     assert(bits_per_pixel_ == 1);
 
-    if (!area_.Contain(point))
+    if (!area_.contains(point))
         return false;
 
-    div_t idx = div(point.x + point.y * area_.Width(), 8);
+    auto areaSize = area_.size(); // width, height, depth
+    div_t idx = div(point.x() + point.y() * areaSize[0], 8);
     *dst = (data_[idx.quot] >> (7 - idx.rem)) & 1;
     return true;
 }
 
-bool SampleImage::GetBit(const Point2DI& point, unsigned char* dst) const {
+bool SampleImage::GetBit(const Point2i& point, unsigned char* dst) const {
     assert(bits_per_pixel_ > 1);
 
-    if (!area_.Contain(point))
+    if (!area_.contains(point))
         return false;
 
     // Image data is stored with an upper left origin.
-    assert(data_.size() == area_.Width() * area_.Height());
-    *dst = data_[point.x + point.y * area_.Width()];
+    auto areaSize = area_.size(); // width, height, depth
+    assert(data_.size() == areaSize[0] * areaSize[1]);
+    *dst = data_[point.x() + point.y() * areaSize[0]];
     return true;
 }
 
@@ -54,7 +49,7 @@ int SampleImage::BPP() const {
     return bits_per_pixel_;
 }
 
-Rect2DI SampleImage::Area() const {
+Rect2i SampleImage::Area() const {
     return area_;
 }
 
@@ -62,7 +57,7 @@ PathingGrid::PathingGrid(const GameInfo& info):
     pathing_grid_(info.pathing_grid) {
 }
 
-bool PathingGrid::IsPathable(const Point2DI& point) const {
+bool PathingGrid::IsPathable(const Point2i& point) const {
     if (pathing_grid_.BPP() == 1) {
         bool value;
         if (!pathing_grid_.GetBit(point, &value))
@@ -81,8 +76,9 @@ bool PathingGrid::IsPathable(const Point2DI& point) const {
 void PathingGrid::Dump(const std::string& file_path) const {
     std::ofstream dst(file_path);
 
-    for (int y = pathing_grid_.Area().Height() - 1; y >= 0; --y) {
-        for (int x = 0; x < pathing_grid_.Area().Width(); ++x) {
+    auto areaSize = pathing_grid_.Area().size(); // width, height, depth
+    for (int y = areaSize[1] - 1; y >= 0; --y) {
+        for (int x = 0; x < areaSize[0]; ++x) {
             dst << (IsPathable({x, y}) ? ' ' : '#');
         }
 
@@ -94,7 +90,7 @@ PlacementGrid::PlacementGrid(const GameInfo& info):
     placement_grid_(info.placement_grid) {
 }
 
-bool PlacementGrid::IsPlacable(const Point2DI& point) const {
+bool PlacementGrid::IsPlacable(const Point2i& point) const {
     if (placement_grid_.BPP() == 1) {
         bool value;
         if (!placement_grid_.GetBit(point, &value))
@@ -113,8 +109,9 @@ bool PlacementGrid::IsPlacable(const Point2DI& point) const {
 void PlacementGrid::Dump(const std::string& file_path) const {
     std::ofstream dst(file_path);
 
-    for (int y = placement_grid_.Area().Height() - 1; y >= 0; --y) {
-        for (int x = 0; x < placement_grid_.Area().Width(); ++x) {
+    auto areaSize = placement_grid_.Area().size(); // width, height, depth
+    for (int y = areaSize[1] - 1; y >= 0; --y) {
+        for (int x = 0; x < areaSize[0]; ++x) {
             dst << (IsPlacable({x, y}) ? ' ' : '#');
         }
 
@@ -126,7 +123,7 @@ HeightMap::HeightMap(const GameInfo& info):
     height_map_(info.terrain_height) {
 }
 
-float HeightMap::TerrainHeight(const Point2DI& point) const {
+float HeightMap::TerrainHeight(const Point2i& point) const {
     unsigned char value;
     if (!height_map_.GetBit(point, &value))
         return 0.0f;
@@ -137,8 +134,9 @@ float HeightMap::TerrainHeight(const Point2DI& point) const {
 void HeightMap::Dump(const std::string& file_path) const {
     std::ofstream dst(file_path);
 
-    for (int x = 0; x < height_map_.Area().Width(); ++x) {
-        for (int y = 0; y < height_map_.Area().Height(); ++y)
+    auto areaSize = height_map_.Area().size(); // width, height, depth
+    for (int x = 0; x < areaSize[0]; ++x) {
+        for (int y = 0; y < areaSize[1]; ++y)
             dst << TerrainHeight({x, y}) << "|";
 
         dst << std::endl;

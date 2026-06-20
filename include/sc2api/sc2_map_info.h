@@ -15,12 +15,10 @@ namespace sc2 {
 
 //! Data for a feature layer or rendered image.
 struct ImageData {
-    int width;
-    int height;
-    int bits_per_pixel;
+    int width = 0;
+    int height = 0;
+    int bits_per_pixel = 0;
     std::string data;
-
-    ImageData();
 };
 
 //! Rendered data for a game frame.
@@ -92,12 +90,12 @@ struct GameInfo {
     //! Grid showing which cells can accept placement of structures.
     ImageData placement_grid;
     //! The minimum coordinates of playable space. Points less than this are not playable.
-    Point2D playable_min;
+    Point2f playable_min;
     //! The maximum coordinates of playable space. Points greater than this are not playable.
-    Point2D playable_max;
+    Point2f playable_max;
     //! Positions of possible enemy starting locations.
-    std::vector<Point2D> enemy_start_locations;
-    std::vector<Point2D> start_locations;
+    std::vector<Point2f> enemy_start_locations;
+    std::vector<Point2f> start_locations;
 
     //! Types of data that will be in observations.
     //!< \sa InterfaceOptions
@@ -113,17 +111,17 @@ struct SampleImage {
 
     explicit SampleImage(const ImageData& data);
 
-    bool GetBit(const Point2DI& point, bool* dst) const;
+    bool GetBit(const Point2i& point, bool* dst) const;
 
-    bool GetBit(const Point2DI& point, unsigned char* dst) const;
+    bool GetBit(const Point2i& point, unsigned char* dst) const;
 
     int BPP() const;
 
-    Rect2DI Area() const;
+    Rect2i Area() const;
 
 private:
     const std::string& data_;
-    Rect2DI area_;
+    Rect2i area_;
 
     // NOTE (alkurbatov): Possible bits per pixel values specified in
     // protocol/s2clientprotocol/raw.proto
@@ -133,7 +131,7 @@ private:
 struct PathingGrid {
     explicit PathingGrid(const GameInfo& info);
 
-    bool IsPathable(const Point2DI& point) const;
+    bool IsPathable(const Point2i& point) const;
 
     void Dump(const std::string& file_path) const;
 
@@ -144,7 +142,7 @@ private:
 struct PlacementGrid {
     explicit PlacementGrid(const GameInfo& info);
 
-    bool IsPlacable(const Point2DI& point) const;
+    bool IsPlacable(const Point2i& point) const;
 
     void Dump(const std::string& file_path) const;
 
@@ -155,7 +153,7 @@ private:
 struct HeightMap {
     explicit HeightMap(const GameInfo& info);
 
-    float TerrainHeight(const Point2DI& point) const;
+    float TerrainHeight(const Point2i& point) const;
 
     void Dump(const std::string& file_path) const;
 

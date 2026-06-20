@@ -59,7 +59,7 @@ namespace sc2 {
 
     Point2D TestUnitCommand::GetPointOffsetX(Point2D starting_point, float offset) {
         Point2D offset_point = starting_point;
-        offset_point.x = starting_point.x + offset;
+        offset_point[POS_X] = starting_point.x() + offset;
         return offset_point;
     }
 

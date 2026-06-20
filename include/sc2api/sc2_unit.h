@@ -8,10 +8,12 @@
 #include "sc2_common.h"
 #include "sc2_typeenums.h"
 #include <vector>
+#include <memory>
+#include <functional>
 #include <unordered_map>
 #include <unordered_set>
 #include <string>
-#include <stdint.h>
+#include <cstdint>
 
 namespace sc2 {
 
@@ -20,50 +22,33 @@ class ObservationInterface;
 //! An order that is active on a unit.
 struct UnitOrder {
     //! Ability ID that triggered the order.
-    AbilityID ability_id;
+    AbilityID ability_id = ABILITY_ID::INVALID;
     //! Target unit of the order, if there is one.
-    Tag target_unit_tag;
+    Tag target_unit_tag = NullTag; // TODO: make optional?
     //! Target position of the order, if there is one.
-    Point2D target_pos;
+    Point2f target_pos; // TODO: make optional?
     //! Progress of the order.
-    float progress;
-
-    UnitOrder() :
-        ability_id(0),
-        target_unit_tag(NullTag),
-        progress(0.0f) {
-    }
+    float progress = 0.0f;
 };
 
 //! A passenger on a transport.
 struct PassengerUnit {
     //! The tag of the unit in the transport.
-    Tag tag;
+    Tag tag = NullTag;
     //! The health of the unit in the transport.
-    float health;
+    float health = 0.0f;
     //! The max possible health of the unit in the transport.
-    float health_max;
+    float health_max = 0.0f;
     //! The shield of the unit in the transport.
-    float shield;
+    float shield = 0.0f;
     //! The max possible shield of the unit in the transport.
-    float shield_max;
+    float shield_max = 0.0f;
     //! The energy of the unit in the transport.
-    float energy;
+    float energy = 0.0f;
     //! The max possible energy of the unit in the transport.
-    float energy_max;
+    float energy_max = 0.0f;
     //! The type of unit in the transport.
-    UnitTypeID unit_type;
-
-    PassengerUnit() :
-        tag(NullTag),
-        health(0.0f),
-        health_max(0.0f),
-        shield(0.0f),
-        shield_max(0.0f),
-        energy(0.0f),
-        energy_max(0.0f),
-        unit_type(0) {
-    }
+    UnitTypeID unit_type = UNIT_TYPEID::INVALID;
 };
 
 //! A unit. Could be a structure, a worker or a military unit.
@@ -121,7 +106,7 @@ public:
     int owner;
 
     //! Position of the unit in the world.
-    Point3D pos;
+    Point3f pos;
     //! Direction the unit faces in radians (1 radian == 57.296 degrees)
     float facing;
     //! Radius of the unit.
@@ -210,8 +195,6 @@ public:
 
     //! Whether the unit is building or not.
     bool is_building;
-
-    Unit();
 
     //! Whether the unit construction/training completed.
     bool IsBuildFinished() const;

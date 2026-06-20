@@ -21,21 +21,17 @@ struct ActionRaw {
     };
 
     //! The ID of the ability to invoke.
-    AbilityID ability_id;
+    AbilityID ability_id = 0;
     //! Units this action applies to. In normal use, this would be the currently selected units.
     std::vector<Tag> unit_tags;
     //! Which target fields are valid.
-    TargetType target_type;
+    TargetType target_type = TargetNone;
     //! The target of this action. Valid only when target_type == TargetUnitTag.
-    Tag target_tag;
+    Tag target_tag = NullTag;
     //! The target point for this action. Valid only when target_type == TargetPosition.
-    Point2D target_point;
-
-    //! Constructor.
-    ActionRaw();
+    Point2f target_point;
 
     //! Comparison overload.
-
     bool operator==(const ActionRaw& a) const {
         if (ability_id != a.ability_id) {
             return false;
@@ -46,10 +42,7 @@ struct ActionRaw {
         if (target_tag != a.target_tag) {
             return false;
         }
-        if (target_point.x != a.target_point.x) {
-            return false;
-        }
-        if (target_point.y != a.target_point.y) {
+        if (target_point != a.target_point) {
             return false;
         }
         return true;

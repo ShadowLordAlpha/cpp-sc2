@@ -610,14 +610,14 @@ bool ObservationImp::UpdateObservation() {
         return false;
     }
 
-    camera_pos_.x = player_raw.camera().x();
-    camera_pos_.y = player_raw.camera().y();
+    camera_pos_[POS_X] = player_raw.camera().x();
+    camera_pos_[POS_Y] = player_raw.camera().y();
 
     power_sources_.clear();
+    power_sources_.reserve(player_raw.power_sources_size());
     for (int i = 0, e = player_raw.power_sources_size(); i < e; ++i) {
         const SC2APIProtocol::PowerSource& power_source = player_raw.power_sources(i);
-        power_sources_.push_back(
-            PowerSource(Point2D(power_source.pos().x(), power_source.pos().y()), power_source.radius(), power_source.tag()));
+        power_sources_.emplace_back(Point2D(power_source.pos().x(), power_source.pos().y()), power_source.radius(), power_source.tag());
     }
 
     upgrades_previous_ = upgrades_;
@@ -628,7 +628,7 @@ bool ObservationImp::UpdateObservation() {
 
     player_results_.clear();
     for (const auto& player_result : response_->player_result()) {
-        player_results_.push_back(PlayerResult(player_result.player_id(), ConvertGameResultFromProto(player_result.result())));
+        player_results_.emplace_back(player_result.player_id(), ConvertGameResultFromProto(player_result.result()));
     }
 
     return true;
@@ -720,16 +720,13 @@ std::vector<AvailableAbilities> QueryImp::GetAbilitiesForUnits(const Units& unit
         control_.ErrorIf(response_query_available_abilities.unit_tag() != units[i]->tag, ClientError::ErrorSC2);
         for (int j = 0; j < response_query_available_abilities.abilities_size(); ++j) {
             const SC2APIProtocol::AvailableAbility& ability = response_query_available_abilities.abilities(j);
-            AvailableAbility available_ability;
+
+            auto abilityId = ability.ability_id();
             if (use_generalized_ability_id) {
-                available_ability.ability_id = GetGeneralizedAbilityID(ability.ability_id(), observation_);
-            }
-            else {
-                available_ability.ability_id = ability.ability_id();
+                abilityId = GetGeneralizedAbilityID(ability.ability_id(), observation_);
             }
 
-            available_ability.requires_point = ability.requires_point();
-            available_abilities_unit.abilities.push_back(available_ability);
+            available_abilities_unit.abilities.emplace_back(abilityId, ability.requires_point());
         }
 
         available_abilities_out.push_back(available_abilities_unit);
@@ -773,12 +770,12 @@ std::vector<float> QueryImp::PathingDistance(const std::vector<PathingQuery>& qu
         }
         else {
             SC2APIProtocol::Point2D* startPos = pathing_query->mutable_start_pos();
-            startPos->set_x(query.start_.x);
-            startPos->set_y(query.start_.y);
+            startPos->set_x(query.start_.x());
+            startPos->set_y(query.start_.y());
         }
         SC2APIProtocol::Point2D* endPos = pathing_query->mutable_end_pos();
-        endPos->set_x(query.end_.x);
-        endPos->set_y(query.end_.y);
+        endPos->set_x(query.end_.x());
+        endPos->set_y(query.end_.y());
     }
 
     if (!proto_.SendRequest(request)) {
@@ -832,8 +829,8 @@ std::vector<bool> QueryImp::Placement(const std::vector<PlacementQuery>& queries
         placement_query->set_ability_id(query.ability);
 
         SC2APIProtocol::Point2D* target = placement_query->mutable_target_pos();
-        target->set_x(query.target_pos.x);
-        target->set_y(query.target_pos.y);
+        target->set_x(query.target_pos.x());
+        target->set_y(query.target_pos.y());
     }
 
     if (!proto_.SendRequest(request)) {
@@ -997,8 +994,8 @@ void DebugImp::DebugTextOut(const std::string& out, const Point2D& pt_virtual_2D
     debug_text.text = out;
     debug_text.has_coords = true;
     debug_text.is_3d = false;
-    debug_text.pt.x = pt_virtual_2D.x;
-    debug_text.pt.y = pt_virtual_2D.y;
+    debug_text.pt[POS_X] = pt_virtual_2D.x();
+    debug_text.pt[POS_Y] = pt_virtual_2D.y();
     debug_text.color = color;
     debug_text.size = size;
     debug_text_.push_back(debug_text);
@@ -1009,9 +1006,9 @@ void DebugImp::DebugTextOut(const std::string& out, const Point3D& pt3D, Color c
     debug_text.text = out;
     debug_text.has_coords = true;
     debug_text.is_3d = true;
-    debug_text.pt.x = pt3D.x;
-    debug_text.pt.y = pt3D.y;
-    debug_text.pt.z = pt3D.z;
+    debug_text.pt[POS_X] = pt3D.x();
+    debug_text.pt[POS_Y] = pt3D.y();
+    debug_text.pt[POS_Z] = pt3D.z();
     debug_text.color = color;
     debug_text.size = size;
     debug_text_.push_back(debug_text);
@@ -1169,20 +1166,20 @@ void DebugImp::SendDebug() {
         if (entry.has_coords) {
             if (entry.is_3d) {
                 SC2APIProtocol::Point* pos = debug_text->mutable_world_pos();
-                pos->set_x(entry.pt.x);
-                pos->set_y(entry.pt.y);
-                pos->set_z(entry.pt.z);
+                pos->set_x(entry.pt.x());
+                pos->set_y(entry.pt.y());
+                pos->set_z(entry.pt.z());
             }
             else {
                 SC2APIProtocol::Point* pos = debug_text->mutable_virtual_pos();
-                pos->set_x(entry.pt.x);
-                pos->set_y(entry.pt.y);
+                pos->set_x(entry.pt.x());
+                pos->set_y(entry.pt.y());
             }
         }
         SC2APIProtocol::Color* color_text = debug_text->mutable_color();
-        color_text->set_r(entry.color.r);
-        color_text->set_g(entry.color.g);
-        color_text->set_b(entry.color.b);
+        color_text->set_r(entry.color.r());
+        color_text->set_g(entry.color.g());
+        color_text->set_b(entry.color.b());
     }
 
     for (const DebugLine& line : debug_line_) {
@@ -1191,19 +1188,19 @@ void DebugImp::SendDebug() {
         SC2APIProtocol::Line* proto_line = debug_line->mutable_line();
 
         SC2APIProtocol::Point* p0 = proto_line->mutable_p0();
-        p0->set_x(line.p0.x);
-        p0->set_y(line.p0.y);
-        p0->set_z(line.p0.z);
+        p0->set_x(line.p0.x());
+        p0->set_y(line.p0.y());
+        p0->set_z(line.p0.z());
 
         SC2APIProtocol::Point* p1 = proto_line->mutable_p1();
-        p1->set_x(line.p1.x);
-        p1->set_y(line.p1.y);
-        p1->set_z(line.p1.z);
+        p1->set_x(line.p1.x());
+        p1->set_y(line.p1.y());
+        p1->set_z(line.p1.z());
 
         SC2APIProtocol::Color* color_line = debug_line->mutable_color();
-        color_line->set_r(line.color.r);
-        color_line->set_g(line.color.g);
-        color_line->set_b(line.color.b);
+        color_line->set_r(line.color.r());
+        color_line->set_g(line.color.g());
+        color_line->set_b(line.color.b());
     }
 
     for (const DebugBox& box : debug_box_) {
@@ -1211,19 +1208,19 @@ void DebugImp::SendDebug() {
         SC2APIProtocol::DebugBox* debug_box = command->mutable_draw()->add_boxes();
 
         SC2APIProtocol::Point* p_min = debug_box->mutable_min();
-        p_min->set_x(box.p_min.x);
-        p_min->set_y(box.p_min.y);
-        p_min->set_z(box.p_min.z);
+        p_min->set_x(box.p_min.x());
+        p_min->set_y(box.p_min.y());
+        p_min->set_z(box.p_min.z());
 
         SC2APIProtocol::Point* p_max = debug_box->mutable_max();
-        p_max->set_x(box.p_max.x);
-        p_max->set_y(box.p_max.y);
-        p_max->set_z(box.p_max.z);
+        p_max->set_x(box.p_max.x());
+        p_max->set_y(box.p_max.y());
+        p_max->set_z(box.p_max.z());
 
         SC2APIProtocol::Color* color_box = debug_box->mutable_color();
-        color_box->set_r(box.color.r);
-        color_box->set_g(box.color.g);
-        color_box->set_b(box.color.b);
+        color_box->set_r(box.color.r());
+        color_box->set_g(box.color.g());
+        color_box->set_b(box.color.b());
     }
 
     for (const DebugSphere& sphere : debug_sphere_) {
@@ -1231,16 +1228,16 @@ void DebugImp::SendDebug() {
         SC2APIProtocol::DebugSphere* debug_sphere = command->mutable_draw()->add_spheres();
 
         SC2APIProtocol::Point* p = debug_sphere->mutable_p();
-        p->set_x(sphere.p_.x);
-        p->set_y(sphere.p_.y);
-        p->set_z(sphere.p_.z);
+        p->set_x(sphere.p_.x());
+        p->set_y(sphere.p_.y());
+        p->set_z(sphere.p_.z());
 
         debug_sphere->set_r(sphere.r_);
 
         SC2APIProtocol::Color* color_sphere = debug_sphere->mutable_color();
-        color_sphere->set_r(sphere.color_.r);
-        color_sphere->set_g(sphere.color_.g);
-        color_sphere->set_b(sphere.color_.b);
+        color_sphere->set_r(sphere.color_.r());
+        color_sphere->set_g(sphere.color_.g());
+        color_sphere->set_b(sphere.color_.b());
     }
 
     for (const DebugSetUnitValue& set_unit_value : debug_unit_values_) {
@@ -1276,8 +1273,8 @@ void DebugImp::SendDebug() {
         create_unit->set_unit_type(unit.unit_type);
         create_unit->set_owner(unit.player_id);
         SC2APIProtocol::Point2D* pt = create_unit->mutable_pos();
-        pt->set_x(unit.pos.x);
-        pt->set_y(unit.pos.y);
+        pt->set_x(unit.pos.x());
+        pt->set_y(unit.pos.y());
         create_unit->set_quantity(unit.count);
     }
 
@@ -1340,8 +1337,8 @@ void DebugImp::SendDebug() {
         SC2APIProtocol::ActionRawCameraMove* camera_move = action_raw->mutable_camera_move();
 
         SC2APIProtocol::Point* point = camera_move->mutable_center_world_space();
-        point->set_x(debug_move_camera_.x);
-        point->set_y(debug_move_camera_.y);
+        point->set_x(debug_move_camera_.x());
+        point->set_y(debug_move_camera_.y());
 
         has_move_camera = false;
         proto_.SendRequest(camera_request);

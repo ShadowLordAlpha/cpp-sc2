@@ -72,8 +72,8 @@ Point2DI ConvertWorldToMinimap(const GameInfo& game_info, const Point2D& world) 
     // left pixel of the feature layer.
     float image_origin_x = 0;
     float image_origin_y = map_height;
-    float image_relative_x = world.x - image_origin_x;
-    float image_relative_y = image_origin_y - world.y;
+    float image_relative_x = world.x() - image_origin_x;
+    float image_relative_y = image_origin_y - world.y();
 
     int image_x = static_cast<int>((image_relative_x / pixel_size));
     int image_y = static_cast<int>((image_relative_y / pixel_size));
@@ -94,10 +94,10 @@ Point2DI ConvertWorldToCamera(const GameInfo& game_info, const Point2D camera_wo
 
     // Origin of world space is bottom left. Origin of image space is top left.
     // The feature layer is centered around the camera target position.
-    float image_origin_x = camera_world.x - image_width_world / 2.0f;
-    float image_origin_y = camera_world.y + image_height_world / 2.0f;
-    float image_relative_x = world.x - image_origin_x;
-    float image_relative_y = image_origin_y - world.y;
+    float image_origin_x = camera_world.x() - image_width_world / 2.0f;
+    float image_origin_y = camera_world.y() + image_height_world / 2.0f;
+    float image_relative_x = world.x() - image_origin_x;
+    float image_relative_y = image_origin_y - world.y();
 
     int image_x = static_cast<int>(image_relative_x / pixel_size);
     int image_y = static_cast<int>(image_relative_y / pixel_size);

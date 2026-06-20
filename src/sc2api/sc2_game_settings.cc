@@ -20,23 +20,6 @@ ProcessSettings::ProcessSettings(bool in_realtime,
     full_screen(in_full_screen) {
 }
 
-InterfaceSettings::InterfaceSettings() :
-    use_feature_layers(false),
-    use_render(false) {
-}
-
-GameSettings::GameSettings() :
-    map_name(""),
-    player_setup(),
-    ports() {
-}
-
-ReplaySettings::ReplaySettings() :
-    replay_file(),
-    replay_dir(),
-    player_id(1) {
-}
-
 const char* kMapBelShirVestigeLE = "Ladder/(2)Bel'ShirVestigeLE (Void).SC2Map";
 const char* kMapEmpty            = "Test/Empty.SC2Map";
 const char* kMapEmptyLong        = "Test/EmptyLong.SC2Map";
