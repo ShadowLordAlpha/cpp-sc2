@@ -14,7 +14,8 @@ set(sc2test_sources
     test_restart.cc
     test_snapshots.cc
     test_unit_command_common.cc
-    test_unit_command.cc)
+    test_unit_command.cc
+    test_replay_observation.cc)
 
 add_executable(all_tests ${sc2test_sources})
 
@@ -28,3 +29,11 @@ if (BUILD_SC2_RENDERER)
 endif ()
 
 target_link_libraries(all_tests sc2api sc2lib sc2utils)
+
+# Standalone live-client test for ReplayInfo / raw camera / chat. Avoids
+# running the full all_tests suite (multiplayer, performance, restarts).
+add_executable(test_replay_observation
+    test_replay_observation.cc
+    test_replay_observation_main.cc)
+set_target_properties(test_replay_observation PROPERTIES FOLDER tests)
+target_link_libraries(test_replay_observation sc2api sc2lib sc2utils)
