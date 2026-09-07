@@ -50,6 +50,9 @@ public:
     virtual bool HasResponsePending() const = 0;
 
     virtual bool GetObservation() = 0;
+    //! True if the last GetObservation/WaitStep populated a new observation.
+    //! False after a missing observation: last good observation is kept, skip OnStep.
+    virtual bool IsObservationReady() const = 0;
     virtual bool PollResponse() = 0;
     virtual bool ConsumeResponse() = 0;
 

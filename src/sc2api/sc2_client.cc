@@ -1443,6 +1443,7 @@ public:
     std::vector<std::string> protocol_errors_;
 
     std::mutex error_mutex_;
+    bool observation_ready_;
 
     ProtoInterface& Proto() override;
 
@@ -1477,6 +1478,7 @@ public:
     bool HasResponsePending() const override;
 
     bool GetObservation() override;
+    bool IsObservationReady() const override;
     bool PollResponse() override;
     bool ConsumeResponse() override;
 
@@ -1526,7 +1528,8 @@ ControlImp::ControlImp(Client& client)
       is_multiplayer_(false),
       observation_imp_(nullptr),
       query_imp_(nullptr),
-      debug_imp_(nullptr) {
+      debug_imp_(nullptr),
+      observation_ready_(false) {
     proto_.SetControl(this);
     observation_imp_ = std::make_unique<ObservationImp>(proto_, observation_, response_, *this);
     query_imp_ = std::make_unique<QueryImp>(proto_, *this, *observation_imp_);
@@ -1834,6 +1837,26 @@ bool ControlImp::Step(int count) {
 bool ControlImp::WaitStep() {
     const GameResponsePtr response = WaitForResponse();
     if (!response.get() || !response->has_step() || response->error_size() > 0) {
+        observation_ready_ = false;
+        std::cerr << "[cpp-sc2 warning] WaitStep failed; skipping this tick and keeping the last good observation."
+                  << std::endl;
+        std::cerr << "  app_state=" << static_cast<int>(app_state_) << std::endl;
+        std::cerr << "  last_status=" << static_cast<int>(GetLastStatus()) << std::endl;
+        if (!response.get()) {
+            std::cerr << "  step response: null (timeout or disconnect)" << std::endl;
+        } else {
+            std::cerr << "  response_case=" << response->response_case() << " has_step=" << response->has_step()
+                      << " error_size=" << response->error_size() << std::endl;
+            for (int i = 0; i < response->error_size(); ++i) {
+                std::cerr << "  error[" << i << "]: " << response->error(i) << std::endl;
+            }
+            std::string dump = response->DebugString();
+            if (dump.size() > 4096) {
+                dump.resize(4096);
+                dump += "\n... [truncated]";
+            }
+            std::cerr << "  proto:\n" << dump << std::endl;
+        }
         return false;
     }
 
@@ -2010,14 +2033,24 @@ bool ControlImp::HasResponsePending() const {
     return proto_.HasResponsePending();
 }
 
+bool ControlImp::IsObservationReady() const {
+    return observation_ready_;
+}
+
 bool ControlImp::GetObservation() {
     if (app_state_ != AppState::normal) {
+        observation_ready_ = false;
+        std::cerr << "[cpp-sc2 warning] GetObservation skipped: app_state=" << static_cast<int>(app_state_)
+                  << " last_status=" << static_cast<int>(GetLastStatus()) << std::endl;
         return false;
     }
 
     GameRequestPtr request = proto_.MakeRequest();
     request->mutable_observation();
     if (!proto_.SendRequest(request)) {
+        observation_ready_ = false;
+        std::cerr << "[cpp-sc2 warning] GetObservation: failed to send RequestObservation."
+                  << " last_status=" << static_cast<int>(GetLastStatus()) << std::endl;
         return false;
     }
 
@@ -2025,30 +2058,63 @@ bool ControlImp::GetObservation() {
     ResponseObservationPtr response_observation;
     SET_MESSAGE_RESPONSE(response_observation, response, observation);
     if (response_observation.HasErrors()) {
-        std::cerr << std::endl << "Error in returning observation:" << std::endl;
-        std::cerr << "The main response is of type: " << std::to_string(response->response_case()) << std::endl;
-        if (response_observation.HasResponse()) {
-            std::cerr << "There is no ResponseObservation/message!" << std::endl;
+        observation_ready_ = false;
+        std::cerr << "[cpp-sc2 warning] Missing observation. Keeping the last good observation and skipping this step."
+                  << std::endl;
+        std::cerr << "  app_state=" << static_cast<int>(app_state_)
+                  << " last_status=" << static_cast<int>(GetLastStatus()) << std::endl;
+        if (observation_imp_) {
+            std::cerr << "  last_good_game_loop=" << observation_imp_->GetGameLoop() << std::endl;
         }
+        if (!response) {
+            std::cerr << "  response: null (timeout or disconnect)" << std::endl;
+            return false;
+        }
+        std::cerr << "  response_case=" << response->response_case() << " (12 is typically ping/other; see proto)"
+                  << std::endl;
+        std::cerr << "  has_observation=" << response->has_observation() << std::endl;
+        std::cerr << "  error_size=" << response->error_size() << std::endl;
         if (response->error_size() > 0) {
             for (int i = 0; i < response->error_size(); ++i) {
-                std::cerr << "Error string: " << response->error(i) << std::endl;
+                std::cerr << "  error[" << i << "]: " << response->error(i) << std::endl;
             }
         } else {
-            std::cerr << "No error strings in result." << std::endl;
+            std::cerr << "  No error strings in result." << std::endl;
         }
-        std::cerr << std::endl;
+        if (response->has_status()) {
+            std::cerr << "  proto_status=" << response->status() << std::endl;
+        }
+        std::string dump = response->DebugString();
+        if (dump.size() > 4096) {
+            dump.resize(4096);
+            dump += "\n... [truncated]";
+        }
+        std::cerr << "  proto:\n" << dump << std::endl;
         return false;
     }
 
     ObservationPtr observation;
     SET_SUBMESSAGE_RESPONSE(observation, response_observation, observation);
     if (observation.HasErrors()) {
+        observation_ready_ = false;
+        std::cerr << "[cpp-sc2 warning] ResponseObservation has no Observation submessage. Keeping last good observation."
+                  << std::endl;
+        if (response) {
+            std::cerr << "  response_case=" << response->response_case()
+                      << " has_observation=" << response->has_observation() << std::endl;
+            std::string dump = response->DebugString();
+            if (dump.size() > 4096) {
+                dump.resize(4096);
+                dump += "\n... [truncated]";
+            }
+            std::cerr << "  proto:\n" << dump << std::endl;
+        }
         return false;
     }
 
     observation_ = observation;
     response_ = response_observation;
+    observation_ready_ = true;
 
     observation_imp_->UpdateObservation();
 
