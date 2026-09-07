@@ -2078,8 +2078,10 @@ bool ControlImp::GetObservation() {
     SET_SUBMESSAGE_RESPONSE(observation, response_observation, observation);
     if (observation.HasErrors()) {
         observation_ready_ = false;
-        std::cerr << "[cpp-sc2 warning] ResponseObservation has no Observation submessage. Keeping last good observation."
-                  << std::endl;
+        std::cerr
+            << "[cpp-sc2 warning] ResponseObservation has no Observation submessage. Keeping last good observation."
+            << std::endl;
+
         if (response) {
             std::cerr << "  response_case=" << response->response_case()
                       << " has_observation=" << response->has_observation() << std::endl;
