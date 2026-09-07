@@ -303,7 +303,9 @@ void CoordinatorImp::StepAgents() {
         }
 
         control->Step(process_settings_.step_size);
-        control->WaitStep();
+        if (!control->WaitStep()) {
+            return;
+        }
         if (process_settings_.multi_threaded) {
             CallOnStep(a);
         }
@@ -323,6 +325,10 @@ void CoordinatorImp::StepAgents() {
 
             // It is possible to have a pending leave game request here.
             if (a->Control()->PollLeaveGame()) {
+                continue;
+            }
+
+            if (!a->Control()->IsObservationReady()) {
                 continue;
             }
 
@@ -356,7 +362,9 @@ void CoordinatorImp::StepAgentsRealtime() {
         }
 
         // This agent shouldn't call step since it's real time.
-        control->GetObservation();
+        if (!control->GetObservation()) {
+            return;
+        }
         control->IssueEvents(a->Actions()->Commands());
         action->SendActions();
 
@@ -394,7 +402,9 @@ void CoordinatorImp::StepReplayObservers() {
 
         if (r->Control()->IsInGame()) {
             r->Control()->Step(process_settings_.step_size);
-            r->Control()->WaitStep();
+            if (!r->Control()->WaitStep()) {
+                return;
+            }
 
             // If multithreaded run everyones OnStep in parallel.
             if (process_settings_.multi_threaded) {
@@ -431,6 +441,9 @@ void CoordinatorImp::StepReplayObservers() {
                 continue;
             }
 
+            if (!r->Control()->IsObservationReady()) {
+                continue;
+            }
             r->Control()->IssueEvents();
             r->ObserverAction()->SendActions();
         }
@@ -454,7 +467,9 @@ void CoordinatorImp::StepReplayObserversRealtime() {
         }
 
         if (r->Control()->IsInGame()) {
-            r->Control()->GetObservation();
+            if (!r->Control()->GetObservation()) {
+                return;
+            }
 
             // If multithreaded run everyones OnStep in parallel.
             if (process_settings_.multi_threaded) {
@@ -487,6 +502,9 @@ void CoordinatorImp::StepReplayObserversRealtime() {
     if (!process_settings_.multi_threaded) {
         for (auto r : replay_observers_) {
             if (r->Control()->GetAppState() != AppState::normal) {
+                continue;
+            }
+            if (!r->Control()->IsObservationReady()) {
                 continue;
             }
 
