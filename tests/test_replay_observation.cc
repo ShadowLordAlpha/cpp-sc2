@@ -142,6 +142,16 @@ public:
             chat_cleared_ = true;
         }
 
+        for (const auto& action : Observation()->GetRawActions()) {
+            if (action.target_type == ActionRaw::TargetCamera) {
+                saw_camera_ = true;
+                const float dx = action.target_point.x - kCameraTarget.x;
+                const float dy = action.target_point.y - kCameraTarget.y;
+                if ((dx * dx + dy * dy) < 16.0f) {
+                    camera_near_target_ = true;
+                }
+            }
+        }
     }
 
     bool stepped() const {
@@ -153,6 +163,12 @@ public:
     bool chat_cleared() const {
         return chat_cleared_;
     }
+    bool saw_camera() const {
+        return saw_camera_;
+    }
+    bool camera_near_target() const {
+        return camera_near_target_;
+    }
 
 private:
     std::string* errors_;
@@ -161,6 +177,8 @@ private:
     bool saw_chat_ = false;
     bool saw_chat_text_ = false;
     bool chat_cleared_ = false;
+    bool saw_camera_ = false;
+    bool camera_near_target_ = false;
 };
 
 }  // namespace
@@ -224,8 +242,10 @@ bool TestReplayObservation(int argc, char** argv) {
         std::cerr << "TestReplayObservation: ReplayObserver never stepped" << std::endl;
         success = false;
     }
-    // Camera and chat assertions land in later topic PRs. This test only
-    // requires a complete ReplayInfo including both player names.
+    if (!observer.saw_camera() || !observer.camera_near_target()) {
+        std::cerr << "TestReplayObservation: raw camera move missing from replay actions" << std::endl;
+        success = false;
+    }
     (void)observer.saw_chat_text();
     (void)observer.chat_cleared();
     return success;
