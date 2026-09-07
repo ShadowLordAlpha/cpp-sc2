@@ -94,6 +94,7 @@ public:
     std::vector<UpgradeID> upgrades_;
     std::vector<UpgradeID> upgrades_previous_;
     std::vector<ChatMessage> chat_;
+    std::vector<ChatMessage> chat_previous_;
 
     // Game info.
     mutable GameInfo game_info_;
@@ -615,10 +616,25 @@ bool ObservationImp::UpdateObservation() {
         }
     }
 
-    chat_.clear();
+    std::vector<ChatMessage> incoming;
+    incoming.reserve(static_cast<size_t>(response_->chat_size()));
     for (const auto& message : response_->chat()) {
-        chat_.push_back({message.player_id(), message.message()});
+        incoming.push_back({message.player_id(), message.message()});
     }
+    chat_.clear();
+    for (const auto& message : incoming) {
+        bool seen = false;
+        for (const auto& previous : chat_previous_) {
+            if (previous.player_id == message.player_id && previous.message == message.message) {
+                seen = true;
+                break;
+            }
+        }
+        if (!seen) {
+            chat_.push_back(message);
+        }
+    }
+    chat_previous_ = std::move(incoming);
 
     ObservationRawPtr observation_raw;
     SET_SUBMESSAGE_RESPONSE(observation_raw, observation_, raw_data);

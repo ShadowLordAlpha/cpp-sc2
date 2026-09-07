@@ -246,8 +246,14 @@ bool TestReplayObservation(int argc, char** argv) {
         std::cerr << "TestReplayObservation: raw camera move missing from replay actions" << std::endl;
         success = false;
     }
-    (void)observer.saw_chat_text();
-    (void)observer.chat_cleared();
+    if (!observer.saw_chat_text()) {
+        std::cerr << "TestReplayObservation: chat line never appeared in GetChatMessages" << std::endl;
+        success = false;
+    }
+    if (!observer.chat_cleared()) {
+        std::cerr << "TestReplayObservation: chat messages did not clear on later steps" << std::endl;
+        success = false;
+    }
     return success;
 }
 
