@@ -1495,6 +1495,7 @@ public:
     void IssueUnitDamagedEvents();
 
     void IssueAlertEvents();
+    void IssueActionErrorEvents();
     void IssueUpgradeEvents();
 
     void DumpProtoUsage() override;
@@ -2232,6 +2233,7 @@ void ControlImp::IssueBuildingCompletedEvents() {
 void ControlImp::IssueAlertEvents() {
     // Iterate the alerts and issue relevant events.
     for (const auto alert : observation_->alerts()) {
+        client_.OnAlert(static_cast<Alert>(alert));
         switch (alert) {
             case SC2APIProtocol::Alert::NuclearLaunchDetected: {
                 client_.OnNuclearLaunchDetected();
@@ -2245,6 +2247,21 @@ void ControlImp::IssueAlertEvents() {
                 break;
             }
         }
+    }
+}
+
+void ControlImp::IssueActionErrorEvents() {
+    if (!response_.HasMessage()) {
+        return;
+    }
+    for (int i = 0; i < response_->action_errors_size(); ++i) {
+        const SC2APIProtocol::ActionError& proto_error = response_->action_errors(i);
+        sc2::ActionError error;
+        error.unit_tag = proto_error.has_unit_tag() ? proto_error.unit_tag() : NullTag;
+        error.ability_id = proto_error.has_ability_id() ? AbilityID(proto_error.ability_id()) : AbilityID(0);
+        error.result =
+            proto_error.has_result() ? static_cast<ActionResult>(proto_error.result()) : ActionResult::Error;
+        client_.OnActionError(error);
     }
 }
 
@@ -2273,6 +2290,7 @@ bool ControlImp::IssueEvents(const Tags& commands) {
     IssueIdleEvents(commands);
     IssueUpgradeEvents();
     IssueAlertEvents();
+    IssueActionErrorEvents();
     IssueUnitDamagedEvents();
 
     // Run the users OnStep function after events have been issued.

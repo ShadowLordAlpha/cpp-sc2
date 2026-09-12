@@ -11,6 +11,8 @@ both inherit from Client.
 #include <string>
 #include <vector>
 
+#include "sc2_action.h"
+#include "sc2_gametypes.h"
 #include "sc2_typeenums.h"
 
 namespace sc2 {
@@ -116,6 +118,16 @@ public:
 
     //! Called when a nuclear launch is detected.
     virtual void OnNuclearLaunchDetected() {
+    }
+
+    //! Called for every protocol Alert this step. Alerts have no extra payload.
+    //! OnNydusDetected / OnNuclearLaunchDetected still fire for those two values.
+    virtual void OnAlert(Alert) {
+    }
+
+    //! Called for each failed action in ResponseObservation.action_errors.
+    //! Use this for "this SCV could not place the building" / not enough minerals.
+    virtual void OnActionError(const ActionError&) {
     }
 
     //! Called when an enemy unit enters vision from out of fog of war.
