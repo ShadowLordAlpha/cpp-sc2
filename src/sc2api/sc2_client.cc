@@ -2169,7 +2169,7 @@ void ControlImp::IssueUnitDestroyedEvents() {
                 continue;
             }
 
-            observation_imp_->unit_pool_.MarkDead(tag);
+            observation_imp_->unit_pool_.MarkDead(tag, observation_imp_->current_game_loop_);
             client_.OnUnitDestroyed(unit);
         }
     }
@@ -2267,6 +2267,7 @@ bool ControlImp::IssueEvents(const Tags& commands) {
     }
 
     IssueUnitDestroyedEvents();
+    observation_imp_->unit_pool_.SweepDead(observation_imp_->current_game_loop_);
     IssueUnitAddedEvents();
     IssueBuildingCompletedEvents();
     IssueIdleEvents(commands);
