@@ -26,7 +26,17 @@ public:
                                  bool raw_affects_selection = false) = 0;
     virtual bool WaitJoinGame() = 0;
 
+    //! Ends this client's participation in the current game. In multiplayer this
+    //! sends a leave_game request, which the caller drives to completion with
+    //! PollLeaveGame. In single player, where the protocol does not support
+    //! leave_game, it surrenders through a debug command instead; that resolves
+    //! immediately and the game ends on the next step.
+    //!< \return False if there is no game to leave.
     virtual bool RequestLeaveGame() = 0;
+    //! Drives a pending multiplayer leave_game to completion. Always false in
+    //! single player, where RequestLeaveGame leaves nothing in flight; use
+    //! IsFinishedGame to detect the end of the game there.
+    //!< \return True while a multiplayer leave is pending or the game is over.
     virtual bool PollLeaveGame() = 0;
 
     virtual bool Step(int count = 1) = 0;
