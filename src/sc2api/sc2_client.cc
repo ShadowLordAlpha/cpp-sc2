@@ -1818,13 +1818,41 @@ bool ControlImp::RequestJoinGame(PlayerSetup setup, const InterfaceSettings& set
 }
 
 bool ControlImp::RequestLeaveGame() {
-    if (!is_multiplayer_) {
+    if (is_multiplayer_) {
+        GameRequestPtr request = proto_.MakeRequest();
+        request->mutable_leave_game();
+        return proto_.SendRequest(request);
+    }
+
+    // Single player. RequestLeaveGame is documented by the protocol as multiplayer
+    // only, and this used to return false without sending anything -- so a bot that
+    // wanted to stop early (a training horizon, a scripted probe) had no way to end
+    // its own game and simply played on to the natural end.
+    //
+    // Surrendering through the debug interface is the in-protocol equivalent: it
+    // ends the game with a real result, so OnGameEnd still fires and the coordinator
+    // drops out of its update loop on its own.
+    //
+    // CallOnStep calls this right after OnGameEnd when the game is already over, so
+    // the surrender has to be gated on still being in one.
+    if (!IsInGame()) {
         return false;
     }
 
+    // Built here rather than via DebugInterface::DebugEndGame so that debug draws
+    // the bot has queued for this frame are neither flushed early nor discarded.
     GameRequestPtr request = proto_.MakeRequest();
-    request->mutable_leave_game();
-    return proto_.SendRequest(request);
+    SC2APIProtocol::DebugCommand* command = request->mutable_debug()->add_debug();
+    command->mutable_end_game()->set_end_result(SC2APIProtocol::DebugEndGame_EndResult_Surrender);
+    if (!proto_.SendRequest(request)) {
+        return false;
+    }
+
+    // SendRequest is fire-and-forget and the library is strictly sequential, so the
+    // debug response has to be consumed here or the next request trips
+    // ResponseNotConsumed.
+    WaitForResponse();
+    return true;
 }
 
 bool ControlImp::PollLeaveGame() {
