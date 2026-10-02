@@ -386,10 +386,25 @@ public:
     virtual void ToggleAutocast(Tag unit_tag, AbilityID ability) = 0;
 
     //! Lets one passenger out of a transport (a bunker, a medivac, a warp prism, a Nydus network, ...), chosen by
-    //! its position in the transport's passenger list. The raw unload-unit abilities do nothing through the API;
-    //! this is what the cargo panel does: the transport is selected, then the panel's unload is clicked for that
-    //! slot. Batched with the other actions and dispatched on SendActions().
-    //!< \param transport_tag The transport.
+    //! its position in that transport's passenger list.
+    //!
+    //! The raw unload-unit abilities return Error and leave the passenger aboard. The unload is a cargo-panel
+    //! click, and that message carries only a unit index, so it applies to whichever unit is selected. With
+    //! nothing selected and a single transport, the click unloads that transport. With two loaded transports it
+    //! unloads one of them, not one you named. After a raw command has selected some other unit, the click
+    //! returns Error and unloads nobody. Each call therefore selects this transport with ability 0 and then
+    //! clicks the slot. Ability 0 is a selection, not an order: the game reports it as Error, and it is not
+    //! recorded in Commands().
+    //!
+    //! Several calls queue into the one SendActions request, each as a select followed by its click. Inside that
+    //! request the indices are the passenger list from before any of the clicks. Index 0 and index 2 unload
+    //! those two original slots. Clicking index 0 twice, including with another ability-0 select of the same
+    //! transport between the clicks, unloads only the original slot 0. Selecting a different transport between
+    //! clicks does switch the panel, so one request can unload one passenger from each.
+    //!
+    //! The game honors the click only when the match was joined with raw_affects_selection and a feature-layer
+    //! interface. Dispatched with the other actions on SendActions().
+    //!< \param transport_tag The transport to select and unload from.
     //!< \param passenger_index Index into Unit::passengers of that transport.
     virtual void UnloadPassenger(Tag transport_tag, int passenger_index) = 0;
 

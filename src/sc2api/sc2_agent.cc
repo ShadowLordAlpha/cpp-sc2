@@ -76,6 +76,11 @@ void ActionImp::SendActions() {
     if (request_action) {
         for (int i = 0, e = request_action->actions_size(); i < e; ++i) {
             const SC2APIProtocol::Action& action = request_action->actions(i);
+            // Ability 0 selects a unit for a following UI action. It is not an order, so recording its tag
+            // makes IssueIdleEvents report OnUnitIdle for a transport that was only selected.
+            if (action.action_raw().has_unit_command() && action.action_raw().unit_command().ability_id() == 0) {
+                continue;
+            }
             for (auto tag : action.action_raw().unit_command().unit_tags()) {
                 commands_.push_back(tag);
             };
@@ -103,7 +108,6 @@ void ActionImp::UnloadPassenger(Tag transport_tag, int passenger_index) {
         SC2APIProtocol::ActionCargoPanelUnload* command = action_ui->mutable_cargo_panel();
         command->set_unit_index(passenger_index);
     }
-    commands_.push_back(transport_tag);
 }
 
 void ActionImp::ToggleAutocast(Tag unit_tag, AbilityID ability) {
