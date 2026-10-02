@@ -396,6 +396,14 @@ public:
     //!< \param ability The ability to be toggled.
     virtual void ToggleAutocast(Tag unit_tag, AbilityID ability) = 0;
 
+    //! Lets one passenger out of a transport (a bunker, a medivac, a warp prism, a Nydus network, ...), chosen by
+    //! its position in the transport's passenger list. The raw unload-unit abilities do nothing through the API;
+    //! this is what the cargo panel does: the transport is selected, then the panel's unload is clicked for that
+    //! slot. Batched with the other actions and dispatched on SendActions().
+    //!< \param transport_tag The transport.
+    //!< \param passenger_index Index into Unit::passengers of that transport.
+    virtual void UnloadPassenger(Tag transport_tag, int passenger_index) = 0;
+
     //! Enables or disables autocast of an ability on a list of units.
     //!< \param unit_tags The units to toggle the ability on.
     //!< \param ability The ability to be toggled.

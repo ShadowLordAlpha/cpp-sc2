@@ -53,6 +53,8 @@ public:
     void ToggleAutocast(Tag unit_tag, AbilityID ability) override;
     void ToggleAutocast(const Tags& unit_tags, AbilityID ability) override;
 
+    void UnloadPassenger(Tag transport_tag, int passenger_index) override;
+
     void SendChat(const std::string& message, ChatChannel channel) override;
 
     const Tags& Commands() const override;
@@ -100,6 +102,26 @@ void ActionImp::SendActions() {
     const GameResponsePtr response = control_.WaitForResponse();
     QueueFailedActionResults(control_, response, request_action);
     request_actions_ = nullptr;
+}
+
+void ActionImp::UnloadPassenger(Tag transport_tag, int passenger_index) {
+    SC2APIProtocol::RequestAction* request_action = GetRequestAction();
+    {
+        // Select the transport: a unit command with ability 0 selects its units.
+        SC2APIProtocol::Action* action = request_action->add_actions();
+        SC2APIProtocol::ActionRaw* action_raw = action->mutable_action_raw();
+        SC2APIProtocol::ActionRawUnitCommand* command = action_raw->mutable_unit_command();
+        command->set_ability_id(0);
+        command->add_unit_tags(transport_tag);
+    }
+    {
+        // Click the cargo panel's unload for that slot.
+        SC2APIProtocol::Action* action = request_action->add_actions();
+        SC2APIProtocol::ActionUI* action_ui = action->mutable_action_ui();
+        SC2APIProtocol::ActionCargoPanelUnload* command = action_ui->mutable_cargo_panel();
+        command->set_unit_index(passenger_index);
+    }
+    commands_.push_back(transport_tag);
 }
 
 void ActionImp::ToggleAutocast(Tag unit_tag, AbilityID ability) {
