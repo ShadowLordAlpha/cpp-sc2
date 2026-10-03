@@ -385,28 +385,41 @@ public:
     //!< \param ability The ability to be toggled.
     virtual void ToggleAutocast(Tag unit_tag, AbilityID ability) = 0;
 
-    //! Lets one passenger out of a transport (a bunker, a medivac, a warp prism, a Nydus network, ...), chosen by
-    //! its position in that transport's passenger list.
-    //!
-    //! The raw unload-unit abilities return Error and leave the passenger aboard. The unload is a cargo-panel
-    //! click, and that message carries only a unit index, so it applies to whichever unit is selected. With
-    //! nothing selected and a single transport, the click unloads that transport. With two loaded transports it
-    //! unloads one of them, not one you named. After a raw command has selected some other unit, the click
-    //! returns Error and unloads nobody. Each call therefore selects this transport with ability 0 and then
-    //! clicks the slot. Ability 0 is a selection, not an order: the game reports it as Error, and it is not
-    //! recorded in Commands().
-    //!
-    //! Several calls queue into the one SendActions request, each as a select followed by its click. Inside that
-    //! request the indices are the passenger list from before any of the clicks. Index 0 and index 2 unload
-    //! those two original slots. Clicking index 0 twice, including with another ability-0 select of the same
-    //! transport between the clicks, unloads only the original slot 0. Selecting a different transport between
-    //! clicks does switch the panel, so one request can unload one passenger from each.
-    //!
-    //! The game honors the click only when the match was joined with raw_affects_selection and a feature-layer
-    //! interface. Dispatched with the other actions on SendActions().
+    //! Lets one passenger out of a transport. Equivalent to UnloadPassengers with that single slot.
     //!< \param transport_tag The transport to select and unload from.
     //!< \param passenger_index Index into Unit::passengers of that transport.
     virtual void UnloadPassenger(Tag transport_tag, int passenger_index) = 0;
+
+    //! Lets these passengers out of one transport in one call. Index 0 and index 2 unload those two slots.
+    //!
+    //! The raw unload-unit abilities return Error and leave the passenger aboard. Each unload is a cargo-panel
+    //! click, and that message carries only a unit index, so it applies to whichever unit is selected. This
+    //! selects the transport once with ability 0, then clicks each slot. Ability 0 is a selection, not an order:
+    //! the game reports it as Error, and it is not recorded in Commands(). One request can carry several such
+    //! calls. Inside a request the indices are the passenger list from before any of the clicks, so 0 and 2 are
+    //! the original slots. Clicking one slot twice unloads that passenger once. Selecting a different transport
+    //! between calls does switch the panel.
+    //!
+    //! With nothing selected and a single transport, a click still unloads that transport. With two loaded
+    //! transports it unloads one of them, not one you named. After a raw command has selected some other unit,
+    //! the click returns Error and unloads nobody. The select is what names the transport.
+    //!
+    //! The click is honored only when the match was joined with raw_affects_selection and a feature-layer
+    //! interface. Otherwise this reports ClientError::MissingInterfaceOption, queues nothing, and
+    //! Coordinator::Update returns false after OnError. Dispatched with the other actions on SendActions().
+    //!< \param transport_tag The transport to select and unload from.
+    //!< \param passenger_indices Slots in Unit::passengers. Negative and repeated slots are skipped.
+    //!< \return How many cargo clicks were queued.
+    virtual int UnloadPassengers(Tag transport_tag, const std::vector<int>& passenger_indices) = 0;
+
+    //! Lets these units out of a transport. Each tag is matched against PassengerUnit::tag. A marine loaded into a
+    //! bunker keeps the tag it had while visible and leaves the unit list, so pass the tag you already stored.
+    //! Tags that are not aboard are skipped. The matched slots are unloaded by UnloadPassengers(Tag, indices): one
+    //! select, then those clicks.
+    //!< \param transport The transport. Its passengers list supplies the slots.
+    //!< \param unit_tags Tags of the units to unload.
+    //!< \return How many cargo clicks were queued.
+    virtual int UnloadPassengers(const Unit& transport, const Tags& unit_tags) = 0;
 
     //! Enables or disables autocast of an ability on a list of units.
     //!< \param unit_tags The units to toggle the ability on.

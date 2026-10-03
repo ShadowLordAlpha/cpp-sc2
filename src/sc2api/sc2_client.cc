@@ -1406,6 +1406,8 @@ public:
     AppState app_state_;
 
     bool is_multiplayer_;
+    bool raw_affects_selection_ = false;
+    bool use_feature_layers_ = false;
 
     // Proto and socket interface to the game.
     ProtoInterface proto_;
@@ -1433,6 +1435,12 @@ public:
 
     bool RequestJoinGame(PlayerSetup setup, const InterfaceSettings& settings, const Ports& ports = Ports(),
                          bool raw_affects_selection = false) override;
+    bool RawAffectsSelection() const override {
+        return raw_affects_selection_;
+    }
+    bool UseFeatureLayers() const override {
+        return use_feature_layers_;
+    }
     bool WaitJoinGame() override;
 
     bool RequestLeaveGame() override;
@@ -1744,6 +1752,8 @@ bool ControlImp::RequestJoinGame(PlayerSetup setup, const InterfaceSettings& set
 
     // If raw_affects_selection == true, will not generate a deselect command
     // after sending a command to a unit
+    raw_affects_selection_ = raw_affects_selection;
+    use_feature_layers_ = settings.use_feature_layers;
     options->set_raw_affects_selection(raw_affects_selection);
 
     if (settings.use_feature_layers) {
