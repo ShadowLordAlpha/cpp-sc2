@@ -53,7 +53,9 @@ public:
     void ToggleAutocast(Tag unit_tag, AbilityID ability) override;
     void ToggleAutocast(const Tags& unit_tags, AbilityID ability) override;
 
-    void UnloadPassenger(Tag transport_tag, int passenger_index) override;
+    bool UnloadPassenger(Tag transport_tag, int passenger_index) override;
+    int UnloadPassengers(Tag transport_tag, const std::vector<int>& passenger_indices) override;
+    int UnloadPassengers(const Unit& transport, const Tags& unit_tags) override;
 
     void SendChat(const std::string& message, ChatChannel channel) override;
 
@@ -93,6 +95,11 @@ void ActionImp::SendActions() {
     if (request_action) {
         for (int i = 0, e = request_action->actions_size(); i < e; ++i) {
             const SC2APIProtocol::Action& action = request_action->actions(i);
+            // Ability 0 selects a unit for a following UI action. It is not an order, so recording its tag
+            // makes IssueIdleEvents report OnUnitIdle for a transport that was only selected.
+            if (action.action_raw().has_unit_command() && action.action_raw().unit_command().ability_id() == 0) {
+                continue;
+            }
             for (auto tag : action.action_raw().unit_command().unit_tags()) {
                 commands_.push_back(tag);
             }
@@ -104,24 +111,57 @@ void ActionImp::SendActions() {
     request_actions_ = nullptr;
 }
 
-void ActionImp::UnloadPassenger(Tag transport_tag, int passenger_index) {
+bool ActionImp::UnloadPassenger(Tag transport_tag, int passenger_index) {
+    return UnloadPassengers(transport_tag, std::vector<int>{passenger_index}) == 1;
+}
+
+int ActionImp::UnloadPassengers(Tag transport_tag, const std::vector<int>& passenger_indices) {
+    std::vector<int> slots;
+    for (const int index : passenger_indices) {
+        if (index < 0) {
+            continue;
+        }
+        bool repeated = false;
+        for (const int kept : slots) {
+            if (kept == index) {
+                repeated = true;
+            }
+        }
+        if (!repeated) {
+            slots.push_back(index);
+        }
+    }
+    if (slots.empty()) {
+        return 0;
+    }
+
     SC2APIProtocol::RequestAction* request_action = GetRequestAction();
     {
-        // Select the transport: a unit command with ability 0 selects its units.
+        // Select the transport once. Ability 0 is a selection, not an order.
         SC2APIProtocol::Action* action = request_action->add_actions();
-        SC2APIProtocol::ActionRaw* action_raw = action->mutable_action_raw();
-        SC2APIProtocol::ActionRawUnitCommand* command = action_raw->mutable_unit_command();
+        SC2APIProtocol::ActionRawUnitCommand* command = action->mutable_action_raw()->mutable_unit_command();
         command->set_ability_id(0);
         command->add_unit_tags(transport_tag);
     }
-    {
-        // Click the cargo panel's unload for that slot.
+    for (const int index : slots) {
         SC2APIProtocol::Action* action = request_action->add_actions();
-        SC2APIProtocol::ActionUI* action_ui = action->mutable_action_ui();
-        SC2APIProtocol::ActionCargoPanelUnload* command = action_ui->mutable_cargo_panel();
-        command->set_unit_index(passenger_index);
+        action->mutable_action_ui()->mutable_cargo_panel()->set_unit_index(index);
     }
-    commands_.push_back(transport_tag);
+    return static_cast<int>(slots.size());
+}
+
+int ActionImp::UnloadPassengers(const Unit& transport, const Tags& unit_tags) {
+    std::vector<int> slots;
+    for (const Tag tag : unit_tags) {
+        for (int index = 0; index < static_cast<int>(transport.passengers.size()); ++index) {
+            // PassengerUnit::tag is the tag the unit had while it was visible.
+            if (transport.passengers[index].tag == tag) {
+                slots.push_back(index);
+                break;
+            }
+        }
+    }
+    return UnloadPassengers(transport.tag, slots);
 }
 
 void ActionImp::ToggleAutocast(Tag unit_tag, AbilityID ability) {
