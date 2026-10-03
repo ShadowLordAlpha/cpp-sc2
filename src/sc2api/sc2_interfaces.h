@@ -388,7 +388,8 @@ public:
     //! Lets one passenger out of a transport. Equivalent to UnloadPassengers with that single slot.
     //!< \param transport_tag The transport to select and unload from.
     //!< \param passenger_index Index into Unit::passengers of that transport.
-    virtual void UnloadPassenger(Tag transport_tag, int passenger_index) = 0;
+    //!< \return False when the slot is skipped.
+    virtual bool UnloadPassenger(Tag transport_tag, int passenger_index) = 0;
 
     //! Lets these passengers out of one transport in one call. Index 0 and index 2 unload those two slots.
     //!
@@ -405,8 +406,7 @@ public:
     //! the click returns Error and unloads nobody. The select is what names the transport.
     //!
     //! The click is honored only when the match was joined with raw_affects_selection and a feature-layer
-    //! interface. Otherwise this queues nothing, returns 0, and writes that requirement to stderr once.
-    //! Dispatched with the other actions on SendActions().
+    //! interface. Dispatched with the other actions on SendActions().
     //!< \param transport_tag The transport to select and unload from.
     //!< \param passenger_indices Slots in Unit::passengers. Negative and repeated slots are skipped.
     //!< \return How many cargo clicks were queued.

@@ -24,14 +24,6 @@ public:
 
     virtual bool RequestJoinGame(PlayerSetup setup, const InterfaceSettings& settings, const Ports& ports = Ports(),
                                  bool raw_affects_selection = false) = 0;
-    //! True when this client joined with raw_affects_selection. A cargo-panel click follows that selection.
-    virtual bool RawAffectsSelection() const {
-        return false;
-    }
-    //! True when this client joined with a feature-layer interface. The cargo panel is part of that interface.
-    virtual bool UseFeatureLayers() const {
-        return false;
-    }
     virtual bool WaitJoinGame() = 0;
 
     virtual bool RequestLeaveGame() = 0;

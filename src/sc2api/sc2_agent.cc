@@ -1,7 +1,5 @@
 #include "sc2_agent.h"
 
-#include <iostream>
-
 #include "sc2_control_interfaces.h"
 #include "sc2_interfaces.h"
 #include "sc2_unit.h"
@@ -38,7 +36,7 @@ public:
     void ToggleAutocast(Tag unit_tag, AbilityID ability) override;
     void ToggleAutocast(const Tags& unit_tags, AbilityID ability) override;
 
-    void UnloadPassenger(Tag transport_tag, int passenger_index) override;
+    bool UnloadPassenger(Tag transport_tag, int passenger_index) override;
     int UnloadPassengers(Tag transport_tag, const std::vector<int>& passenger_indices) override;
     int UnloadPassengers(const Unit& transport, const Tags& unit_tags) override;
 
@@ -49,7 +47,6 @@ public:
     void SendActions() override;
 
     Tags commands_;
-    bool reported_missing_cargo_interface_ = false;
 };
 
 ActionImp::ActionImp(ProtoInterface& proto, ControlInterface& control) : proto_(proto), control_(control) {
@@ -96,8 +93,8 @@ void ActionImp::SendActions() {
     control_.WaitForResponse();
 }
 
-void ActionImp::UnloadPassenger(Tag transport_tag, int passenger_index) {
-    UnloadPassengers(transport_tag, std::vector<int>{passenger_index});
+bool ActionImp::UnloadPassenger(Tag transport_tag, int passenger_index) {
+    return UnloadPassengers(transport_tag, std::vector<int>{passenger_index}) == 1;
 }
 
 int ActionImp::UnloadPassengers(Tag transport_tag, const std::vector<int>& passenger_indices) {
@@ -117,13 +114,6 @@ int ActionImp::UnloadPassengers(Tag transport_tag, const std::vector<int>& passe
         }
     }
     if (slots.empty()) {
-        return 0;
-    }
-    if (!control_.RawAffectsSelection() || !control_.UseFeatureLayers()) {
-        if (!reported_missing_cargo_interface_) {
-            std::cerr << "UnloadPassengers requires raw_affects_selection and a feature-layer interface, set before joining\n";
-            reported_missing_cargo_interface_ = true;
-        }
         return 0;
     }
 
