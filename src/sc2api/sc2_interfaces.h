@@ -405,8 +405,8 @@ public:
     //! the click returns Error and unloads nobody. The select is what names the transport.
     //!
     //! The click is honored only when the match was joined with raw_affects_selection and a feature-layer
-    //! interface. Otherwise this reports ClientError::MissingInterfaceOption, queues nothing, and
-    //! Coordinator::Update returns false after OnError. Dispatched with the other actions on SendActions().
+    //! interface. Otherwise this queues nothing, returns 0, and writes that requirement to stderr once.
+    //! Dispatched with the other actions on SendActions().
     //!< \param transport_tag The transport to select and unload from.
     //!< \param passenger_indices Slots in Unit::passengers. Negative and repeated slots are skipped.
     //!< \return How many cargo clicks were queued.

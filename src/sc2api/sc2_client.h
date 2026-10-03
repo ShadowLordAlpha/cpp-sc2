@@ -43,7 +43,6 @@ enum class ClientError {
     SC2ProtocolTimeout, /*! A request was made and a response was not received in the amount of time given by the
                            timeout. */
     WrongGameVersion,   /*! A replay was attempted to be loaded in the wrong game version. */
-    MissingInterfaceOption, /*! UnloadPassengers needs raw_affects_selection and feature layers, which are fixed at join. */
 };
 
 //! A set of common events a user can override in their derived bot or replay observer class.

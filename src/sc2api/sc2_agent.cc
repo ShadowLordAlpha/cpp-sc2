@@ -1,5 +1,7 @@
 #include "sc2_agent.h"
 
+#include <iostream>
+
 #include "sc2_control_interfaces.h"
 #include "sc2_interfaces.h"
 #include "sc2_unit.h"
@@ -47,6 +49,7 @@ public:
     void SendActions() override;
 
     Tags commands_;
+    bool reported_missing_cargo_interface_ = false;
 };
 
 ActionImp::ActionImp(ProtoInterface& proto, ControlInterface& control) : proto_(proto), control_(control) {
@@ -117,8 +120,10 @@ int ActionImp::UnloadPassengers(Tag transport_tag, const std::vector<int>& passe
         return 0;
     }
     if (!control_.RawAffectsSelection() || !control_.UseFeatureLayers()) {
-        control_.Error(ClientError::MissingInterfaceOption,
-                       {"UnloadPassengers requires raw_affects_selection and a feature-layer interface, set before joining"});
+        if (!reported_missing_cargo_interface_) {
+            std::cerr << "UnloadPassengers requires raw_affects_selection and a feature-layer interface, set before joining\n";
+            reported_missing_cargo_interface_ = true;
+        }
         return 0;
     }
 
