@@ -15,6 +15,13 @@ namespace sc2::search {
 namespace {
 const float kHeightMergeDelta = 10.0F / 8.0F;
 const float kMinOppositeGeyserDistance = 3.0F;
+// A geyser belongs to a base when a 9x9 window centred on it overlaps the footprint of
+// another resource of that base (up to 3 empty tiles between the footprints). Footprints:
+// geyser 3x3, mineral 2x1.
+const float kGeyserWindowHalf = 4.5F;
+const float kGeyserHalf = 1.5F;
+const float kMineralHalfX = 1.0F;
+const float kMineralHalfY = 0.5F;
 const int kOffsetRange = 7;
 const int kTownHallHalfSize = 2;
 const size_t kMaxResourcesPerExpansion = 12;
@@ -24,18 +31,21 @@ bool UnitHasVespene(const Unit& unit, const UnitTypes& unit_types) {
     return id < unit_types.size() && unit_types[id].has_vespene;
 }
 
-bool IsWallMineralType(UNIT_TYPEID type) {
-    return type == UNIT_TYPEID::NEUTRAL_MINERALFIELD450 || type == UNIT_TYPEID::MINERALFIELDOPAQUE ||
-           type == UNIT_TYPEID::MINERALFIELDOPAQUE900;
+bool OverlapsGeyserWindow(const Unit& geyser, const Unit& other, bool other_is_geyser) {
+    const float half_x = other_is_geyser ? kGeyserHalf : kMineralHalfX;
+    const float half_y = other_is_geyser ? kGeyserHalf : kMineralHalfY;
+    return std::abs(geyser.pos.x - other.pos.x) < kGeyserWindowHalf + half_x &&
+           std::abs(geyser.pos.y - other.pos.y) < kGeyserWindowHalf + half_y;
 }
 
-bool HasExpansionMineral(const Units& minerals) {
-    for (const auto* mineral : minerals) {
-        if (!IsWallMineralType(mineral->unit_type)) {
-            return true;
-        }
-    }
-    return false;
+bool SamePatchLevel(const HeightMap& height, const Unit& a, const Unit& b) {
+    const float delta = height.TerrainHeight(Point2DI(a.pos)) - height.TerrainHeight(Point2DI(b.pos));
+    return std::abs(delta) <= kHeightMergeDelta;
+}
+
+// One geyser is enough. Rich gas shows up on some maps and is not a requirement.
+bool HasBaseGas(const Units& geysers) {
+    return !geysers.empty();
 }
 
 Units GatherExpansionResources(const ObservationInterface& observation) {
@@ -322,44 +332,90 @@ std::vector<Point3D> CalculateExpansionLocations(const ObservationInterface* obs
     const HeightMap height(game_info);
     const UnitTypes& unit_types = observation->GetUnitTypeData();
     const std::vector<Point2D> offsets = ExpansionOffsets();
-    const std::vector<Units> groups = Cluster(resources, parameters.cluster_distance_);
+    Units mineral_units;
+    Units geyser_units;
+    SplitMineralsAndGeysers(resources, unit_types, mineral_units, geyser_units);
+
+    std::vector<Units> clusters;
+    for (const auto& group : Cluster(mineral_units, parameters.cluster_distance_)) {
+        for (auto& height_group : SplitByTerrainHeight(group, height)) {
+            clusters.push_back(std::move(height_group));
+        }
+    }
+
+    // A second geyser can sit next to the first rather than next to a mineral.
+    // Attach one geyser per pass so that link is visible to the next pass.
+    std::vector<bool> joined(geyser_units.size(), false);
+    bool attached = true;
+    while (attached) {
+        attached = false;
+        for (size_t geyser_index = 0; geyser_index < geyser_units.size(); ++geyser_index) {
+            if (joined[geyser_index]) {
+                continue;
+            }
+            const Unit* geyser = geyser_units[geyser_index];
+            int best_cluster = -1;
+            float best_gap = 0.0F;
+            bool found = false;
+            for (size_t cluster_index = 0; cluster_index < clusters.size(); ++cluster_index) {
+                for (const auto* member : clusters[cluster_index]) {
+                    if (!SamePatchLevel(height, *geyser, *member)) {
+                        continue;
+                    }
+                    if (!OverlapsGeyserWindow(*geyser, *member, UnitHasVespene(*member, unit_types))) {
+                        continue;
+                    }
+                    const float gap = DistanceSquared2D(geyser->pos, member->pos);
+                    if (!found || gap < best_gap) {
+                        found = true;
+                        best_gap = gap;
+                        best_cluster = static_cast<int>(cluster_index);
+                    }
+                }
+            }
+            if (!found) {
+                continue;
+            }
+            clusters[static_cast<size_t>(best_cluster)].push_back(geyser);
+            joined[geyser_index] = true;
+            attached = true;
+        }
+    }
 
     std::vector<Point3D> expansion_locations;
-    for (const auto& group : groups) {
-        for (const auto& height_group : SplitByTerrainHeight(group, height)) {
-            if (height_group.size() > kMaxResourcesPerExpansion) {
-                continue;
-            }
-
-            Units minerals;
-            Units geysers;
-            SplitMineralsAndGeysers(height_group, unit_types, minerals, geysers);
-            if (!HasExpansionMineral(minerals)) {
-                continue;
-            }
-
-            auto append_location = [&](const Units& local_resources) {
-                const auto location = FindExpansionLocation(local_resources, offsets, placement, unit_types);
-                if (!location) {
-                    return;
-                }
-                if (parameters.debug_) {
-                    parameters.debug_->DebugSphereOut(*location, 0.35F, Colors::Red);
-                }
-                expansion_locations.push_back(*location);
-            };
-
-            if (HasOppositeSideGeyserLayout(minerals, geysers)) {
-                for (const auto* geyser : geysers) {
-                    Units local = minerals;
-                    local.push_back(geyser);
-                    append_location(local);
-                }
-                continue;
-            }
-
-            append_location(height_group);
+    for (const auto& cluster : clusters) {
+        if (cluster.size() > kMaxResourcesPerExpansion) {
+            continue;
         }
+
+        Units minerals;
+        Units geysers;
+        SplitMineralsAndGeysers(cluster, unit_types, minerals, geysers);
+        if (!HasBaseGas(geysers)) {
+            continue;
+        }
+
+        auto append_location = [&](const Units& local_resources) {
+            const auto location = FindExpansionLocation(local_resources, offsets, placement, unit_types);
+            if (!location) {
+                return;
+            }
+            if (parameters.debug_) {
+                parameters.debug_->DebugSphereOut(*location, 0.35F, Colors::Red);
+            }
+            expansion_locations.push_back(*location);
+        };
+
+        if (HasOppositeSideGeyserLayout(minerals, geysers)) {
+            for (const auto* geyser : geysers) {
+                Units local = minerals;
+                local.push_back(geyser);
+                append_location(local);
+            }
+            continue;
+        }
+
+        append_location(cluster);
     }
     return expansion_locations;
 }

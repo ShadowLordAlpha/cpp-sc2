@@ -23,11 +23,13 @@ struct ExpansionParameters {
 // Call once and cache.
 //
 // Resources are units whose catalog UnitTypeData has has_minerals or has_vespene. Contents
-// fields are not used (unset on snapshots). Clusters whose minerals are only wall types
-// (MineralField450 / opaque) are skipped; a real base keeps at least one full or 750 field,
-// and that unit type does not change as the patch is mined.
+// fields are not used (unset on snapshots). Minerals cluster with minerals. A geyser joins
+// that cluster only when a 9x9 window centred on it overlaps the footprint (mineral 2x1,
+// geyser 3x3) of a mineral or a geyser already in the cluster, and on that patch's height.
+// A cluster with at least one such geyser is a base. One geyser is enough, rich or not. A
+// mineral line with no geyser that close is a wall, including a rich-mineral line.
 //
-// Remaining clusters are split on terrain-height jumps. Each group of at most 12 resources
+// Mineral clusters are split on terrain-height jumps. Each group of at most 12 resources
 // gets a 5x5-placable .5/.5 town hall on an annulus of hypot radius (4, 8] around the
 // resource centroid, minimizing the sum of Euclidean distances (min 6 from minerals, 7 from
 // geysers). Opposite-side double geyser lines emit two locations (minerals + each geyser).
