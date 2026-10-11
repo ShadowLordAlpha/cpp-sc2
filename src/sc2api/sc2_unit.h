@@ -31,6 +31,14 @@ struct UnitOrder {
     float progress = 0.0F;
 };
 
+//! Where a production building sends what it makes.
+struct RallyTarget {
+    //! The point the rally resolves to. Always filled.
+    Point2D point;
+    //! The unit the rally follows, if it targets a unit.
+    Tag tag = NullTag;
+};
+
 //! A passenger on a transport.
 struct PassengerUnit {
     //! The unit's tag. A marine loaded into a bunker keeps the tag it had while visible.
@@ -179,6 +187,16 @@ public:
     std::vector<BuffID> buffs;
     //! Whether the unit is powered by a pylon.
     bool is_powered;
+    //! Whether the building is training or researching (the game's "animated" flag, raw.proto is_active). Only valid
+    //! for this player's units.
+    bool is_active;
+    //! How long a buff or a timed unit has left (a MULE, a broodling, a Chrono Boost), in game loops. Only valid for
+    //! this player's units, and 0 when nothing on the unit is timed.
+    int32_t buff_duration_remain;
+    //! How long that buff or unit lasts in all, in game loops.
+    int32_t buff_duration_max;
+    //! Where this building rallies what it makes. Only valid for this player's units.
+    std::vector<RallyTarget> rally_targets;
 
     //! Whether the unit is alive or not.
     bool is_alive;
