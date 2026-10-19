@@ -115,6 +115,24 @@ bool ActionImp::UnloadPassenger(Tag transport_tag, int passenger_index) {
     return UnloadPassengers(transport_tag, std::vector<int>{passenger_index}) == 1;
 }
 
+// With raw_affects_selection a raw unit command selects the units it names, even one the game refuses (ability 0),
+// and they stay selected. A cargo-panel click leaves the selection alone. So the transport is selected already when
+// the last raw unit command queued in this request names it alone. Anything else in between is not trusted.
+static bool IsSelectedAlone(const SC2APIProtocol::RequestAction& request_action, Tag tag) {
+    for (int i = request_action.actions_size() - 1; i >= 0; --i) {
+        const SC2APIProtocol::Action& action = request_action.actions(i);
+        if (action.has_action_ui() && action.action_ui().has_cargo_panel()) {
+            continue;
+        }
+        if (!action.has_action_raw() || !action.action_raw().has_unit_command()) {
+            return false;
+        }
+        const SC2APIProtocol::ActionRawUnitCommand& command = action.action_raw().unit_command();
+        return command.unit_tags_size() == 1 && command.unit_tags(0) == tag;
+    }
+    return false;
+}
+
 int ActionImp::UnloadPassengers(Tag transport_tag, const std::vector<int>& passenger_indices) {
     std::vector<int> slots;
     for (const int index : passenger_indices) {
@@ -136,8 +154,8 @@ int ActionImp::UnloadPassengers(Tag transport_tag, const std::vector<int>& passe
     }
 
     SC2APIProtocol::RequestAction* request_action = GetRequestAction();
-    {
-        // Select the transport once. Ability 0 is a selection, not an order.
+    if (!IsSelectedAlone(*request_action, transport_tag)) {
+        // Select the transport. Ability 0 is a selection, not an order, and the game answers it with Error.
         SC2APIProtocol::Action* action = request_action->add_actions();
         SC2APIProtocol::ActionRawUnitCommand* command = action->mutable_action_raw()->mutable_unit_command();
         command->set_ability_id(0);
