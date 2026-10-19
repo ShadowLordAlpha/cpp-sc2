@@ -13,13 +13,15 @@ set(CIVETWEB_ENABLE_WEBSOCKETS ON CACHE BOOL "" FORCE)
 # Disable IPv6 as we use only IPv4
 set(CIVETWEB_ENABLE_IPV6 OFF CACHE BOOL "" FORCE)
 
-# Apply source code tweaks
-set(workdir "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/civetweb")
-set(civetweb_patches
-    "${CMAKE_CURRENT_LIST_DIR}/0001-Setting-TCP_NODELAY-on-outbound-connections.patch"
-    "${CMAKE_CURRENT_LIST_DIR}/0002-Moving-include-CTest-into-if-testing-guard.patch"
+# Apply source code tweaks: every *.patch in this directory. The patch step can run again on a source that is already
+# patched (UPDATE_DISCONNECTED keeps it), so apply-patches.cmake applies them only when they are not in yet.
+find_package(Git REQUIRED)
+set(patch_executor
+    ${CMAKE_COMMAND}
+    "-DGIT_EXECUTABLE=${GIT_EXECUTABLE}"
+    "-DPATCH_DIR=${CMAKE_CURRENT_LIST_DIR}"
+    -P "${CMAKE_CURRENT_LIST_DIR}/apply-patches.cmake"
 )
-set(patch_executor git apply --ignore-whitespace ${civetweb_patches})
 
 if (APPLE)
     add_compile_options(
